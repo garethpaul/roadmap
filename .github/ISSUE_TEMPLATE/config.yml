@@ -2,6 +2,12 @@ contact_links:
   - name: Gareth Homepage
     url: https://garethpaul.com
     about: Ask questions and discuss the roadmap here.
-  - name: GitHub Support - Feedback
+  - name: Gareth Support - Feedback
     url: https://support.garethpaul.com
     about: Get support.
+  - name: Gareth Developer Docs
+    url: https://docs.garethpaul.com
+    about: View Developer Docs
+  - name: Gareth Product Feebdack
+    url: https://docs.garethpaul.com
+    about: Provide feedback about our helper library
