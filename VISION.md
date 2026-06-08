@@ -38,7 +38,7 @@ Roadmap repositories can create expectations. Public plans should distinguish
 intent, committed work, and historical notes so readers do not mistake
 placeholder content for active delivery commitments.
 
-## What We Will Not Merge For Now
+## What We Will Not Merge (For Now)
 
 - Unsourced or ownerless commitments
 - Broad planning frameworks before the scope is defined
