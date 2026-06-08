@@ -13,6 +13,7 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 
 - `README.md` - project overview and local usage notes
 - `.github` - source or example code
+- `SCOPE.md` - explicit placeholder scope and non-commitment guidance
 - `SECURITY.md` - security reporting and disclosure guidance
 - `VISION.md` - project direction and maintenance guardrails
 
@@ -40,7 +41,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Running or Using the Project
 
-- No single runtime entry point was identified. Start by reading the source files and manifests listed above.
+- Start with `SCOPE.md` and `VISION.md`. This repository is a placeholder and does not define active roadmap commitments.
 
 ## Testing and Verification
 
@@ -58,6 +59,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 ## Maintenance Notes
 
+- See `SCOPE.md` before adding roadmap content or templates.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 

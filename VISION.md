@@ -20,7 +20,6 @@ Priority:
 
 Next priorities:
 
-- Add a README that states the roadmap scope
 - Decide whether this is a product roadmap, personal roadmap, or project index
 - Add milestone or planning templates only after scope is clear
 - Archive the repository if it is no longer needed

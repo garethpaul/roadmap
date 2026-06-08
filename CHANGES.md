@@ -8,3 +8,5 @@
   roadmap links and disabled blank issues until scope is defined.
 - Removed stale integration claims from the README and overview image.
 - Documented `make verify` as the documentation verification command.
+- Added `SCOPE.md` with explicit placeholder and non-commitment guidance, plus
+  integrity checks that require README and issue-template scope links.

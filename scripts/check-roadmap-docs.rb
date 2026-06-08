@@ -15,15 +15,27 @@ def read(path)
   ROOT.join(path).read
 end
 
-required_docs = %w[README.md VISION.md SECURITY.md docs/readme-overview.svg]
+required_docs = %w[README.md SCOPE.md VISION.md SECURITY.md docs/readme-overview.svg]
 required_docs.each do |path|
   failures << "#{path} is missing" unless ROOT.join(path).file?
 end
 
 if ROOT.join('README.md').file?
   readme = read('README.md')
-  %w[SECURITY.md VISION.md].each do |doc|
+  %w[SCOPE.md SECURITY.md VISION.md].each do |doc|
     failures << "README.md must mention #{doc}" unless readme.include?(doc)
+  end
+end
+
+if ROOT.join('SCOPE.md').file?
+  scope = read('SCOPE.md')
+  required_scope_phrases = [
+    'No active roadmap commitments are defined',
+    'does not yet identify a product, project, or audience',
+    'should not be treated as an active delivery plan'
+  ]
+  required_scope_phrases.each do |phrase|
+    failures << "SCOPE.md must state: #{phrase}" unless scope.include?(phrase)
   end
 end
 

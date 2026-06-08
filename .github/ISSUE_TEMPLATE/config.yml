@@ -4,5 +4,5 @@ contact_links:
     url: https://github.com/garethpaul/roadmap/security/policy
     about: Review private vulnerability reporting guidance before sharing sensitive details.
   - name: Repository Scope
-    url: https://github.com/garethpaul/roadmap
+    url: https://github.com/garethpaul/roadmap/blob/main/SCOPE.md
     about: Read the current README and vision before proposing roadmap scope.
