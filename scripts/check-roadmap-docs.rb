@@ -67,6 +67,18 @@ if ROOT.join('SCOPE.md').file?
   end
 end
 
+if ROOT.join('docs/readme-overview.svg').file?
+  overview = read('docs/readme-overview.svg')
+  [
+    'placeholder planning repository',
+    'No active roadmap commitments are defined',
+    'SCOPE.md required',
+    'No active commitments'
+  ].each do |phrase|
+    failures << "docs/readme-overview.svg must state: #{phrase}" unless overview.include?(phrase)
+  end
+end
+
 copied_support_patterns = [
   /twilio/i,
   /stackoverflow\.com\/questions\/tagged\/twilio/i,

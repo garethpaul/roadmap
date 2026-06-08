@@ -55,6 +55,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 - `make check` runs the documentation integrity checks for this placeholder repository.
 - The integrity checker also requires completed canonical plans under `docs/plans`.
+- The integrity checker keeps the overview SVG aligned with the placeholder and
+  non-commitment language.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -75,6 +77,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   documentation-only baseline.
 - See `docs/plans/2026-06-08-readme-scope-guard.md` for the README
   non-commitment language guard.
+- See `docs/plans/2026-06-08-overview-placeholder-guard.md` for the overview
+  placeholder language guard.
 
 ## Contributing
 

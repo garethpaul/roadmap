@@ -2,6 +2,8 @@
 
 ## 2026-06-08
 
+- Aligned the README overview SVG with the placeholder scope and added
+  validator coverage for overview non-commitment language.
 - Added README-level non-commitment language and validator coverage so the
   public entrypoint mirrors `SCOPE.md`.
 - Added `make check` as the shared repository verification alias.
