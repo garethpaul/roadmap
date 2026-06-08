@@ -45,7 +45,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- `make verify` runs the documentation integrity checks for this placeholder repository.
+- `make check` runs the documentation integrity checks for this placeholder repository.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

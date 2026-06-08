@@ -1,4 +1,4 @@
-.PHONY: lint test build verify
+.PHONY: build check lint test verify
 
 lint:
 	ruby scripts/check-roadmap-docs.rb
@@ -9,3 +9,5 @@ build:
 	@echo "documentation-only repository; no build step required"
 
 verify: lint test build
+
+check: verify

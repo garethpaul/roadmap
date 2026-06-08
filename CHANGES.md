@@ -2,6 +2,7 @@
 
 ## 2026-06-08
 
+- Added `make check` as the shared repository verification alias.
 - Added a documentation integrity check for roadmap scope, required docs, and
   issue-template contact links.
 - Replaced copied Twilio/support issue-template links with repository-scoped
