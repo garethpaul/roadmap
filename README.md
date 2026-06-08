@@ -12,6 +12,11 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 ## Repository Contents
 
 - `README.md` - project overview and local usage notes
+- `CHANGES.md` - maintenance history for documentation integrity checks
+- `Makefile` - local verification entry points
+- `docs/plans` - completed maintenance plans for the current baseline
+- `plans` - historical implementation notes
+- `scripts` - documentation integrity validators
 - `.github` - source or example code
 - `SCOPE.md` - explicit placeholder scope and non-commitment guidance
 - `SECURITY.md` - security reporting and disclosure guidance
@@ -46,6 +51,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 ## Testing and Verification
 
 - `make check` runs the documentation integrity checks for this placeholder repository.
+- The integrity checker also requires completed canonical plans under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -62,6 +68,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - See `SCOPE.md` before adding roadmap content or templates.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
+- See `docs/plans/2026-06-08-roadmap-baseline.md` for the canonical
+  documentation-only baseline.
 
 ## Contributing
 

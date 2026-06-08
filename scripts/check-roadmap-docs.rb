@@ -5,6 +5,8 @@ require 'pathname'
 require 'yaml'
 
 ROOT = Pathname.new(__dir__).parent.expand_path
+DOCS_PLANS = ROOT.join('docs/plans')
+CANONICAL_PLAN = DOCS_PLANS.join('2026-06-08-roadmap-baseline.md')
 failures = []
 
 def rel(path)
@@ -13,6 +15,24 @@ end
 
 def read(path)
   ROOT.join(path).read
+end
+
+if CANONICAL_PLAN.file?
+  # The canonical plan records the current documentation-only baseline.
+else
+  failures << "#{rel(CANONICAL_PLAN)} is missing"
+end
+
+docs_plans = Dir.glob(DOCS_PLANS.join('*.md')).sort
+if docs_plans.empty?
+  failures << 'docs/plans must contain at least one completed plan'
+end
+
+docs_plans.each do |plan_path|
+  plan = File.read(plan_path)
+  unless plan.include?('Status: Completed') && plan.include?('make check')
+    failures << "#{rel(plan_path)} must record completed status and make check verification"
+  end
 end
 
 required_docs = %w[README.md SCOPE.md VISION.md SECURITY.md docs/readme-overview.svg]

@@ -11,3 +11,5 @@
 - Documented `make verify` as the documentation verification command.
 - Added `SCOPE.md` with explicit placeholder and non-commitment guidance, plus
   integrity checks that require README and issue-template scope links.
+- Added canonical `docs/plans` coverage and made the documentation checker
+  require completed plans.

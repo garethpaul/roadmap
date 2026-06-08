@@ -16,6 +16,7 @@ Priority:
 - Preserve the placeholder without inventing project behavior
 - Keep security-reporting metadata available
 - Document intended ownership before adding planning content
+- Keep completed maintenance plans under `docs/plans`
 - Avoid generated churn that obscures the empty state
 
 Next priorities:
