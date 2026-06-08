@@ -44,18 +44,17 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
-- No dedicated automated test command was identified from the checked-in files. Verify changes by running the relevant build or manually exercising the sample.
+- `make verify` runs the documentation integrity checks for this placeholder repository.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
 ## Configuration and Secrets
 
-- Detected references to Twilio. Keep API keys, OAuth credentials, tokens, and account-specific values in local configuration only.
+- No required secret or credential file was identified in the repository scan. If you add integrations later, keep secrets out of git.
 
 ## Security and Privacy Notes
 
-- Review changes touching external API calls or credential-adjacent configuration; examples from the scan include .github/ISSUE_TEMPLATE/config.yml.
-- Review changes touching network requests, sockets, or service endpoints; examples from the scan include .github/ISSUE_TEMPLATE/config.yml.
+- Review changes touching issue templates or contact links; keep them scoped to this repository until the roadmap purpose is defined.
 
 ## Maintenance Notes
 

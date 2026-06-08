@@ -1,18 +1,8 @@
+blank_issues_enabled: false
 contact_links:
-  - name: Twilio Support
-    url: https://support.twilio.com
-    about: Get Support
-  - name: Stackoverflow
-    url: https://stackoverflow.com/questions/tagged/twilio
-    about: Ask questions on Stackoverflow
-  - name: Do Generation
-    url: https://support.garethpaul.com
-  - name: Language Documentation
-    url: https://support.garethpaul.com
-    about: Get support.
-  - name: Gareth Developer Docs
-    url: https://docs.garethpaul.com
-    about: View Developer Docs
-  - name: Gareth Product Feebdack
-    url: https://docs.garethpaul.com
-    about: Provide feedback about our helper library
+  - name: Security Policy
+    url: https://github.com/garethpaul/roadmap/security/policy
+    about: Review private vulnerability reporting guidance before sharing sensitive details.
+  - name: Repository Scope
+    url: https://github.com/garethpaul/roadmap
+    about: Read the current README and vision before proposing roadmap scope.
