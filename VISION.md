@@ -44,3 +44,6 @@ placeholder content for active delivery commitments.
 - Broad planning frameworks before the scope is defined
 - Hidden automation
 - Claims about products or projects not represented in the repository
+
+This list is a roadmap guardrail, not a permanent rule.
+Strong user demand and strong technical rationale can change it.
