@@ -45,6 +45,14 @@ if ROOT.join('README.md').file?
   %w[SCOPE.md SECURITY.md VISION.md].each do |doc|
     failures << "README.md must mention #{doc}" unless readme.include?(doc)
   end
+
+  [
+    'No active roadmap commitments are defined',
+    'active delivery plan',
+    'owner, audience, timeframe, and commitment level'
+  ].each do |phrase|
+    failures << "README.md must state: #{phrase}" unless readme.include?(phrase)
+  end
 end
 
 if ROOT.join('SCOPE.md').file?

@@ -17,6 +17,7 @@ Priority:
 - Keep security-reporting metadata available
 - Document intended ownership before adding planning content
 - Keep completed maintenance plans under `docs/plans`
+- Keep README and scope guardrails aligned
 - Avoid generated churn that obscures the empty state
 
 Next priorities:

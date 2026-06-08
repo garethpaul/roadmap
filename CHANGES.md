@@ -2,6 +2,8 @@
 
 ## 2026-06-08
 
+- Added README-level non-commitment language and validator coverage so the
+  public entrypoint mirrors `SCOPE.md`.
 - Added `make check` as the shared repository verification alias.
 - Added a documentation integrity check for roadmap scope, required docs, and
   issue-template contact links.

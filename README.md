@@ -47,6 +47,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 ## Running or Using the Project
 
 - Start with `SCOPE.md` and `VISION.md`. This repository is a placeholder and does not define active roadmap commitments.
+- No active roadmap commitments are defined. Do not treat this repository as an
+  active delivery plan until owner, audience, timeframe, and commitment level
+  are documented.
 
 ## Testing and Verification
 
@@ -70,6 +73,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - See `VISION.md` for project direction and contribution guardrails.
 - See `docs/plans/2026-06-08-roadmap-baseline.md` for the canonical
   documentation-only baseline.
+- See `docs/plans/2026-06-08-readme-scope-guard.md` for the README
+  non-commitment language guard.
 
 ## Contributing
 
