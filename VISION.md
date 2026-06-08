@@ -34,6 +34,11 @@ Contribution rules:
 
 ## Security And Responsible Use
 
+Canonical security policy and reporting:
+
+- [`SECURITY.md`](SECURITY.md)
+
+
 Roadmap repositories can create expectations. Public plans should distinguish
 intent, committed work, and historical notes so readers do not mistake
 placeholder content for active delivery commitments.
