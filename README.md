@@ -57,6 +57,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - The integrity checker also requires completed canonical plans under `docs/plans`.
 - The integrity checker keeps the overview SVG aligned with the placeholder and
   non-commitment language.
+- The integrity checker keeps `VISION.md` aligned with the same no-commitment
+  language as `README.md` and `SCOPE.md`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -79,6 +81,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   non-commitment language guard.
 - See `docs/plans/2026-06-08-overview-placeholder-guard.md` for the overview
   placeholder language guard.
+- See `docs/plans/2026-06-09-vision-scope-guard.md` for the VISION
+  non-commitment guard.
 
 ## Contributing
 

@@ -67,6 +67,18 @@ if ROOT.join('SCOPE.md').file?
   end
 end
 
+if ROOT.join('VISION.md').file?
+  vision = read('VISION.md')
+  normalized_vision = vision.gsub(/\s+/, ' ')
+  [
+    'No active roadmap commitments are defined',
+    'does not yet define a product, project, audience',
+    'Do not add roadmap commitments without an owner and timeframe'
+  ].each do |phrase|
+    failures << "VISION.md must state: #{phrase}" unless normalized_vision.include?(phrase)
+  end
+end
+
 if ROOT.join('docs/readme-overview.svg').file?
   overview = read('docs/readme-overview.svg')
   [

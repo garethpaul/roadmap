@@ -3,8 +3,11 @@
 Roadmap is currently a sparse repository with a single README heading and
 security metadata.
 
-The repository is useful as a placeholder for future planning, but it does not
-yet define a product, project, audience, or implementation surface.
+The repository is useful as a placeholder for future planning. It does not yet
+define a product, project, audience, or implementation surface.
+
+No active roadmap commitments are defined. Do not add roadmap commitments
+without an owner and timeframe.
 
 The goal is to keep the repository honest: document purpose before adding
 structure, tooling, or claims.
@@ -18,6 +21,7 @@ Priority:
 - Document intended ownership before adding planning content
 - Keep completed maintenance plans under `docs/plans`
 - Keep README and scope guardrails aligned
+- Keep VISION aligned with the no-commitment warning in README and SCOPE
 - Keep the overview image aligned with the placeholder status
 - Avoid generated churn that obscures the empty state
 

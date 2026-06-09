@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-09
+
+- Added VISION-level non-commitment language and validator coverage so README,
+  SCOPE, and VISION stay aligned on placeholder status.
+
 ## 2026-06-08
 
 - Aligned the README overview SVG with the placeholder scope and added
