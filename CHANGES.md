@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Required repository-scoped issue-template contact links for the security
+  policy and `SCOPE.md`.
 - Added README plan-index validation so every canonical maintenance plan stays
   discoverable and stale plan links fail the docs check.
 - Added an audience prerequisite to `SCOPE.md` and validator coverage so scope

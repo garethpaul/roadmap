@@ -26,6 +26,7 @@ Priority:
   commitment level
 - Keep the overview image aligned with the placeholder status
 - Keep issue-template policy visible from README until scope is defined
+- Keep issue-template contact links scoped to the security policy and SCOPE.md
 - Keep README maintenance notes linked to every canonical plan
 - Avoid generated churn that obscures the empty state
 

@@ -128,7 +128,30 @@ if config_path.file?
       failures << '.github/ISSUE_TEMPLATE/config.yml must disable blank issues until roadmap scope is defined'
     end
 
-    Array(config['contact_links']).each do |link|
+    contact_links = Array(config['contact_links'])
+    if contact_links.empty?
+      failures << '.github/ISSUE_TEMPLATE/config.yml must include repository-scoped contact links'
+    end
+
+    expected_contact_links = {
+      'Security Policy' => 'https://github.com/garethpaul/roadmap/security/policy',
+      'Repository Scope' => 'https://github.com/garethpaul/roadmap/blob/main/SCOPE.md'
+    }
+    expected_contact_links.each do |name, expected_url|
+      matching_link = contact_links.find { |link| link.is_a?(Hash) && link['name'].to_s == name }
+      if matching_link.nil?
+        failures << ".github/ISSUE_TEMPLATE/config.yml must include the #{name} contact link"
+      elsif matching_link['url'].to_s != expected_url
+        failures << ".github/ISSUE_TEMPLATE/config.yml #{name} contact link must use #{expected_url}"
+      end
+    end
+
+    contact_links.each do |link|
+      unless link.is_a?(Hash)
+        failures << '.github/ISSUE_TEMPLATE/config.yml contact link must be a mapping'
+        next
+      end
+
       %w[name url about].each do |field|
         failures << ".github/ISSUE_TEMPLATE/config.yml contact link is missing #{field}" if link[field].to_s.strip.empty?
       end
