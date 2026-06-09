@@ -23,6 +23,7 @@ Priority:
 - Keep README and scope guardrails aligned
 - Keep VISION aligned with the no-commitment warning in README and SCOPE
 - Keep the overview image aligned with the placeholder status
+- Keep issue-template policy visible from README until scope is defined
 - Avoid generated churn that obscures the empty state
 
 Next priorities:

@@ -2,6 +2,9 @@
 
 ## 2026-06-09
 
+- Added README issue-template policy coverage so maintainers can find
+  `.github/ISSUE_TEMPLATE/config.yml` and keep blank issues disabled until
+  roadmap scope is defined.
 - Added VISION-level non-commitment language and validator coverage so README,
   SCOPE, and VISION stay aligned on placeholder status.
 

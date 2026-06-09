@@ -49,7 +49,9 @@ if ROOT.join('README.md').file?
   [
     'No active roadmap commitments are defined',
     'active delivery plan',
-    'owner, audience, timeframe, and commitment level'
+    'owner, audience, timeframe, and commitment level',
+    '.github/ISSUE_TEMPLATE/config.yml',
+    'blank issues disabled'
   ].each do |phrase|
     failures << "README.md must state: #{phrase}" unless readme.include?(phrase)
   end

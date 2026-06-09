@@ -59,6 +59,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   non-commitment language.
 - The integrity checker keeps `VISION.md` aligned with the same no-commitment
   language as `README.md` and `SCOPE.md`.
+- The integrity checker requires README coverage for
+  `.github/ISSUE_TEMPLATE/config.yml`, where blank issues disabled remains the
+  expected policy until roadmap scope is defined.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -83,6 +86,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   placeholder language guard.
 - See `docs/plans/2026-06-09-vision-scope-guard.md` for the VISION
   non-commitment guard.
+- See `docs/plans/2026-06-09-readme-issue-template-guard.md` for the README
+  issue-template policy guard.
 
 ## Contributing
 
