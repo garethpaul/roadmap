@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Added an audience prerequisite to `SCOPE.md` and validator coverage so scope
+  requirements stay aligned with README.
 - Added README issue-template policy coverage so maintainers can find
   `.github/ISSUE_TEMPLATE/config.yml` and keep blank issues disabled until
   roadmap scope is defined.

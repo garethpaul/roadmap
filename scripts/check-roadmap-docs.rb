@@ -62,7 +62,8 @@ if ROOT.join('SCOPE.md').file?
   required_scope_phrases = [
     'No active roadmap commitments are defined',
     'does not yet identify a product, project, or audience',
-    'should not be treated as an active delivery plan'
+    'should not be treated as an active delivery plan',
+    'Audience: the people expected to read or rely on the roadmap'
   ]
   required_scope_phrases.each do |phrase|
     failures << "SCOPE.md must state: #{phrase}" unless scope.include?(phrase)

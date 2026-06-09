@@ -17,6 +17,7 @@ Define the following in a focused change:
 
 - Roadmap type: product roadmap, personal roadmap, project index, or archive.
 - Owner: the person or team accountable for maintaining the roadmap.
+- Audience: the people expected to read or rely on the roadmap.
 - Timeframe: the period covered by any commitments or historical notes.
 - Commitment level: distinguish intent, committed work, and completed work.
 
