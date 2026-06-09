@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Added README plan-index validation so every canonical maintenance plan stays
+  discoverable and stale plan links fail the docs check.
 - Added an audience prerequisite to `SCOPE.md` and validator coverage so scope
   requirements stay aligned with README.
 - Added README issue-template policy coverage so maintainers can find

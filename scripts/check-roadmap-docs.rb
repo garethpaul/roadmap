@@ -46,6 +46,15 @@ if ROOT.join('README.md').file?
     failures << "README.md must mention #{doc}" unless readme.include?(doc)
   end
 
+  docs_plans.each do |plan_path|
+    plan_reference = rel(plan_path)
+    failures << "README.md must reference #{plan_reference}" unless readme.include?(plan_reference)
+  end
+
+  readme.scan(%r{docs/plans/[-\w.]+\.md}).each do |plan_reference|
+    failures << "README.md references missing plan #{plan_reference}" unless ROOT.join(plan_reference).file?
+  end
+
   [
     'No active roadmap commitments are defined',
     'active delivery plan',

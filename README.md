@@ -64,6 +64,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - The integrity checker requires README coverage for
   `.github/ISSUE_TEMPLATE/config.yml`, where blank issues disabled remains the
   expected policy until roadmap scope is defined.
+- The integrity checker requires README maintenance notes to reference every
+  canonical plan under `docs/plans`.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -92,6 +94,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   issue-template policy guard.
 - See `docs/plans/2026-06-09-scope-audience-guard.md` for the scope audience
   prerequisite guard.
+- See `docs/plans/2026-06-09-readme-plan-index-guard.md` for the README
+  maintenance plan index guard.
 
 ## Contributing
 
