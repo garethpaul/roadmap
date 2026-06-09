@@ -7,6 +7,7 @@ require 'yaml'
 ROOT = Pathname.new(__dir__).parent.expand_path
 DOCS_PLANS = ROOT.join('docs/plans')
 CANONICAL_PLAN = DOCS_PLANS.join('2026-06-08-roadmap-baseline.md')
+SCOPE_CHECKLIST_PLAN = DOCS_PLANS.join('2026-06-09-scope-prerequisite-checklist-guard.md')
 failures = []
 
 def rel(path)
@@ -22,6 +23,7 @@ if CANONICAL_PLAN.file?
 else
   failures << "#{rel(CANONICAL_PLAN)} is missing"
 end
+failures << "#{rel(SCOPE_CHECKLIST_PLAN)} is missing" unless SCOPE_CHECKLIST_PLAN.file?
 
 docs_plans = Dir.glob(DOCS_PLANS.join('*.md')).sort
 if docs_plans.empty?
@@ -72,7 +74,11 @@ if ROOT.join('SCOPE.md').file?
     'No active roadmap commitments are defined',
     'does not yet identify a product, project, or audience',
     'should not be treated as an active delivery plan',
-    'Audience: the people expected to read or rely on the roadmap'
+    'Roadmap type: product roadmap, personal roadmap, project index, or archive',
+    'Owner: the person or team accountable for maintaining the roadmap',
+    'Audience: the people expected to read or rely on the roadmap',
+    'Timeframe: the period covered by any commitments or historical notes',
+    'Commitment level: distinguish intent, committed work, and completed work'
   ]
   required_scope_phrases.each do |phrase|
     failures << "SCOPE.md must state: #{phrase}" unless scope.include?(phrase)

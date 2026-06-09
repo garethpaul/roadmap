@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Required the full `SCOPE.md` prerequisite checklist to stay aligned before
+  roadmap content is added.
 - Added security-policy no-commitment language and validator coverage so
   vulnerability reporting does not imply roadmap delivery commitments.
 - Required repository-scoped issue-template contact links for the security

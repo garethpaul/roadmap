@@ -22,8 +22,8 @@ Priority:
 - Keep completed maintenance plans under `docs/plans`
 - Keep README and scope guardrails aligned
 - Keep VISION aligned with the no-commitment warning in README and SCOPE
-- Keep scope prerequisites explicit about owner, audience, timeframe, and
-  commitment level
+- Keep scope prerequisites explicit about roadmap type, owner, audience,
+  timeframe, and commitment level
 - Keep the overview image aligned with the placeholder status
 - Keep issue-template policy visible from README until scope is defined
 - Keep issue-template contact links scoped to the security policy and SCOPE.md

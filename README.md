@@ -62,7 +62,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - The integrity checker keeps `SECURITY.md` explicit that security reports are
   not roadmap commitments.
 - The integrity checker keeps the `SCOPE.md` prerequisite checklist aligned on
-  owner, audience, timeframe, and commitment level.
+  roadmap type, owner, audience, timeframe, and commitment level.
 - The integrity checker requires README coverage for
   `.github/ISSUE_TEMPLATE/config.yml`, where blank issues disabled remains the
   expected policy until roadmap scope is defined.
@@ -104,6 +104,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   issue-template contact-link guard.
 - See `docs/plans/2026-06-09-security-no-commitment-guard.md` for the
   security-policy no-commitment guard.
+- See `docs/plans/2026-06-09-scope-prerequisite-checklist-guard.md` for the
+  full scope prerequisite checklist guard.
 
 ## Contributing
 
