@@ -28,6 +28,7 @@ Priority:
 - Keep issue-template policy visible from README until scope is defined
 - Keep issue-template contact links scoped to the security policy and SCOPE.md
 - Keep README maintenance notes linked to every canonical plan
+- Keep SECURITY explicit that reports do not create roadmap commitments
 - Avoid generated churn that obscures the empty state
 
 Next priorities:

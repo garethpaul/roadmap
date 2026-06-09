@@ -25,6 +25,9 @@ Helpful reports include:
 ## Project Security Posture
 
 - This repository appears to be a public sample, documentation, or utility project. The active security scope is the code and documentation on the default branch.
+- No active roadmap commitments are defined. Security reports are not roadmap
+  commitments; they may clarify repository risk or disclosure handling, but
+  they do not create product, project, owner, or delivery obligations.
 - Review found external API integrations or credential-adjacent configuration; changes in those areas should receive security-focused review before merge.
 - Review found network clients, sockets, web APIs, or service endpoints; changes in those areas should receive security-focused review before merge.
 - No primary dependency manifest was detected in the repository root. If dependencies are added later, include a manifest and prefer reproducible installation instructions.

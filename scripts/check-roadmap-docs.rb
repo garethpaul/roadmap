@@ -91,6 +91,16 @@ if ROOT.join('VISION.md').file?
   end
 end
 
+if ROOT.join('SECURITY.md').file?
+  security = read('SECURITY.md').gsub(/\s+/, ' ')
+  [
+    'No active roadmap commitments are defined',
+    'Security reports are not roadmap commitments'
+  ].each do |phrase|
+    failures << "SECURITY.md must state: #{phrase}" unless security.include?(phrase)
+  end
+end
+
 if ROOT.join('docs/readme-overview.svg').file?
   overview = read('docs/readme-overview.svg')
   [

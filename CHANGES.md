@@ -2,6 +2,8 @@
 
 ## 2026-06-09
 
+- Added security-policy no-commitment language and validator coverage so
+  vulnerability reporting does not imply roadmap delivery commitments.
 - Required repository-scoped issue-template contact links for the security
   policy and `SCOPE.md`.
 - Added README plan-index validation so every canonical maintenance plan stays
