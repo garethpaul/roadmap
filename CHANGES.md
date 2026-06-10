@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-10
+
+- Added issue-template contact-link uniqueness checks so duplicate names or
+  URLs cannot create ambiguous repository support routes.
+
 ## 2026-06-09
 
 - Required the full `SCOPE.md` prerequisite checklist to stay aligned before

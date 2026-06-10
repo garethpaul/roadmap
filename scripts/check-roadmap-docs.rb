@@ -149,6 +149,27 @@ if config_path.file?
       failures << '.github/ISSUE_TEMPLATE/config.yml must include repository-scoped contact links'
     end
 
+    name_counts = Hash.new(0)
+    url_counts = Hash.new(0)
+    contact_links.each do |link|
+      next unless link.is_a?(Hash)
+
+      name = link['name'].to_s.strip
+      url = link['url'].to_s.strip
+      name_counts[name] += 1 unless name.empty?
+      url_counts[url] += 1 unless url.empty?
+    end
+
+    duplicate_names = name_counts.select { |_name, count| count > 1 }.keys.sort
+    unless duplicate_names.empty?
+      failures << ".github/ISSUE_TEMPLATE/config.yml must not duplicate contact link names: #{duplicate_names.join(', ')}"
+    end
+
+    duplicate_urls = url_counts.select { |_url, count| count > 1 }.keys.sort
+    unless duplicate_urls.empty?
+      failures << ".github/ISSUE_TEMPLATE/config.yml must not duplicate contact link URLs: #{duplicate_urls.join(', ')}"
+    end
+
     expected_contact_links = {
       'Security Policy' => 'https://github.com/garethpaul/roadmap/security/policy',
       'Repository Scope' => 'https://github.com/garethpaul/roadmap/blob/main/SCOPE.md'
