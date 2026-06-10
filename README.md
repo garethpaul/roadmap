@@ -69,7 +69,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   `.github/ISSUE_TEMPLATE/config.yml`, where blank issues disabled remains the
   expected policy until roadmap scope is defined.
 - The integrity checker requires the issue-template contact links to include
-  the repository security policy and `SCOPE.md`, with unique names and URLs.
+  only the repository security policy and `SCOPE.md`, with unique names and
+  URLs, until broader roadmap scope is defined.
 - The integrity checker requires README maintenance notes to reference every
   canonical plan under `docs/plans`.
 
@@ -110,6 +111,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   full scope prerequisite checklist guard.
 - See `docs/plans/2026-06-10-issue-template-contact-link-uniqueness.md` for
   the contact-link uniqueness guard.
+- See `docs/plans/2026-06-10-issue-template-contact-link-allowlist.md` for the
+  placeholder contact-link allowlist.
 - See `docs/plans/2026-06-10-hosted-document-validation.md` for the hosted
   documentation validation baseline.
 

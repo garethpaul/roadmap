@@ -198,6 +198,16 @@ if config_path.file?
       'Security Policy' => 'https://github.com/garethpaul/roadmap/security/policy',
       'Repository Scope' => 'https://github.com/garethpaul/roadmap/blob/main/SCOPE.md'
     }
+    unexpected_contact_links = contact_links.each_with_object([]) do |link, names|
+      next unless link.is_a?(Hash)
+
+      name = link['name'].to_s.strip
+      names << name unless name.empty? || expected_contact_links.key?(name)
+    end.uniq.sort
+    unless unexpected_contact_links.empty?
+      failures << ".github/ISSUE_TEMPLATE/config.yml must not add unapproved contact links: #{unexpected_contact_links.join(', ')}"
+    end
+
     expected_contact_links.each do |name, expected_url|
       matching_link = contact_links.find { |link| link.is_a?(Hash) && link['name'].to_s == name }
       if matching_link.nil?

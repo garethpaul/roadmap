@@ -8,6 +8,8 @@
 - Added fail-closed checks for the hosted workflow and completed plan.
 - Added issue-template contact-link uniqueness checks so duplicate names or
   URLs cannot create ambiguous repository support routes.
+- Restricted placeholder issue-template contact routes to the approved
+  Security Policy and Repository Scope links.
 
 ## 2026-06-09
 
