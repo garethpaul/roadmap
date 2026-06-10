@@ -54,6 +54,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 ## Testing and Verification
 
 - `make check` runs the documentation integrity checks for this placeholder repository.
+- GitHub Actions runs the same no-install contract on a fixed Ubuntu 24.04
+  runner with read-only repository permissions.
 - The integrity checker also requires completed canonical plans under `docs/plans`.
 - The integrity checker keeps the overview SVG aligned with the placeholder and
   non-commitment language.
@@ -108,6 +110,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   full scope prerequisite checklist guard.
 - See `docs/plans/2026-06-10-issue-template-contact-link-uniqueness.md` for
   the contact-link uniqueness guard.
+- See `docs/plans/2026-06-10-hosted-document-validation.md` for the hosted
+  documentation validation baseline.
 
 ## Contributing
 

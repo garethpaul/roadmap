@@ -2,6 +2,10 @@
 
 ## 2026-06-10
 
+- Added pinned, least-privilege GitHub Actions validation for the roadmap
+  documentation contract.
+- Made `make check` independent of the caller's current directory.
+- Added fail-closed checks for the hosted workflow and completed plan.
 - Added issue-template contact-link uniqueness checks so duplicate names or
   URLs cannot create ambiguous repository support routes.
 

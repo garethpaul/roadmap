@@ -1,7 +1,10 @@
+ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+RUBY ?= ruby
+
 .PHONY: build check lint test verify
 
 lint:
-	ruby scripts/check-roadmap-docs.rb
+	$(RUBY) "$(ROOT)/scripts/check-roadmap-docs.rb"
 
 test: lint
 

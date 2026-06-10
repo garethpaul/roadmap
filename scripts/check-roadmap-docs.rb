@@ -8,6 +8,8 @@ ROOT = Pathname.new(__dir__).parent.expand_path
 DOCS_PLANS = ROOT.join('docs/plans')
 CANONICAL_PLAN = DOCS_PLANS.join('2026-06-08-roadmap-baseline.md')
 SCOPE_CHECKLIST_PLAN = DOCS_PLANS.join('2026-06-09-scope-prerequisite-checklist-guard.md')
+HOSTED_VALIDATION_PLAN = DOCS_PLANS.join('2026-06-10-hosted-document-validation.md')
+HOSTED_VALIDATION_WORKFLOW = ROOT.join('.github/workflows/check.yml')
 failures = []
 
 def rel(path)
@@ -24,6 +26,28 @@ else
   failures << "#{rel(CANONICAL_PLAN)} is missing"
 end
 failures << "#{rel(SCOPE_CHECKLIST_PLAN)} is missing" unless SCOPE_CHECKLIST_PLAN.file?
+failures << "#{rel(HOSTED_VALIDATION_PLAN)} is missing" unless HOSTED_VALIDATION_PLAN.file?
+
+if HOSTED_VALIDATION_WORKFLOW.file?
+  workflow = HOSTED_VALIDATION_WORKFLOW.read
+  [
+    'runs-on: ubuntu-24.04',
+    'permissions:',
+    'contents: read',
+    'uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10',
+    'run: make check'
+  ].each do |fragment|
+    failures << "#{rel(HOSTED_VALIDATION_WORKFLOW)} must include #{fragment.inspect}" unless workflow.include?(fragment)
+  end
+
+  workflow.scan(/^\s*uses:\s*([^@\s]+)@([^\s#]+)/).each do |action, revision|
+    unless revision.match?(/\A[a-f0-9]{40}\z/)
+      failures << "#{rel(HOSTED_VALIDATION_WORKFLOW)} action #{action} must be pinned to a full commit SHA"
+    end
+  end
+else
+  failures << "#{rel(HOSTED_VALIDATION_WORKFLOW)} is missing"
+end
 
 docs_plans = Dir.glob(DOCS_PLANS.join('*.md')).sort
 if docs_plans.empty?

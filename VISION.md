@@ -30,6 +30,7 @@ Priority:
   with unique names and URLs
 - Keep README maintenance notes linked to every canonical plan
 - Keep SECURITY explicit that reports do not create roadmap commitments
+- Keep the dependency-free documentation contract enforced in hosted validation
 - Avoid generated churn that obscures the empty state
 
 Next priorities:
