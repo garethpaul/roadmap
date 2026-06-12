@@ -20,7 +20,9 @@ but the default branch did not run that contract in hosted validation.
 ## Work Completed
 
 - Added `.github/workflows/check.yml` on a fixed Ubuntu 24.04 runner.
-- Pinned checkout to an immutable commit and limited permissions to read access.
+- Pinned checkout and Ruby setup to immutable commits, limited permissions to
+  read access, covered Ruby 2.7 and Ruby 3.3, and disabled persisted checkout
+  credentials.
 - Made the Makefile resolve the Ruby checker relative to itself.
 - Extended the checker to validate the workflow controls and completed plan.
 

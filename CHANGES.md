@@ -1,9 +1,17 @@
 # Changes
 
+## 2026-06-12
+
+- Required the exact issue-template schema and reviewed contact copy so extra
+  fields, reordered routes, or support-language drift fail validation.
+
 ## 2026-06-10
 
 - Added pinned, least-privilege GitHub Actions validation for the roadmap
   documentation contract.
+- Added explicit Ruby 2.7 and Ruby 3.3 coverage, disabled persisted checkout
+  credentials, and enforced the complete reviewed workflow contract.
+- Added local secret/editor exclusions and fail-closed tracked-metadata checks.
 - Made `make check` independent of the caller's current directory.
 - Added fail-closed checks for the hosted workflow and completed plan.
 - Added issue-template contact-link uniqueness checks so duplicate names or
