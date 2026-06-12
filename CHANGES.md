@@ -2,6 +2,10 @@
 
 ## 2026-06-12
 
+- Added fail-closed tracked file-mode and repository-local Markdown link
+  validation, rejecting symlinks, gitlinks, executable drift, missing targets,
+  and links that escape the checkout.
+
 - Required the exact issue-template schema and reviewed contact copy so extra
   fields, reordered routes, or support-language drift fail validation.
 

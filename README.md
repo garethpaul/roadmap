@@ -24,6 +24,9 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `SECURITY.md` - security reporting and disclosure guidance
 - `VISION.md` - project direction and maintenance guardrails
 
+Tracked repository entries must remain ordinary Git blobs, and relative links
+in tracked Markdown must resolve to regular files inside this repository.
+
 Additional scan context:
 
 - Source directories: .github
@@ -125,6 +128,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   exact credential-free Ruby validation contract.
 - See `docs/plans/2026-06-12-issue-template-schema-contract.md` for the exact
   issue-template schema and reviewed contact copy.
+- See `docs/plans/2026-06-12-document-link-integrity.md` for tracked file-mode
+  and repository-local Markdown link validation.
 
 ## Contributing
 

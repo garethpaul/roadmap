@@ -34,6 +34,8 @@ Priority:
 - Keep the dependency-free documentation contract enforced on Ruby 2.7 and
   Ruby 3.3 in credential-free GitHub Actions validation
 - Keep local secrets and editor metadata out of the placeholder repository
+- Keep tracked documentation as ordinary Git blobs with repository-local links
+  resolving to regular checked-in files
 - Avoid generated churn that obscures the empty state
 
 Next priorities:
