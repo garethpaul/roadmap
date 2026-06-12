@@ -49,6 +49,21 @@ EXPECTED_HOSTED_VALIDATION_WORKFLOW = <<~YAML
         - name: Validate roadmap documents
           run: make check
 YAML
+EXPECTED_ISSUE_TEMPLATE_CONFIG = {
+  'blank_issues_enabled' => false,
+  'contact_links' => [
+    {
+      'name' => 'Security Policy',
+      'url' => 'https://github.com/garethpaul/roadmap/security/policy',
+      'about' => 'Review private vulnerability reporting guidance before sharing sensitive details.'
+    },
+    {
+      'name' => 'Repository Scope',
+      'url' => 'https://github.com/garethpaul/roadmap/blob/main/SCOPE.md',
+      'about' => 'Read the current README and vision before proposing roadmap scope.'
+    }
+  ]
+}.freeze
 failures = []
 
 def rel(path)
@@ -95,6 +110,15 @@ required_docs.each do |path|
   failures << "#{path} is missing" unless ROOT.join(path).file?
 end
 
+checker_source = Pathname.new(__FILE__).read
+[
+  ['EXPECTED_ISSUE_TEMPLATE', '_CONFIG = {'].join,
+  ['YAML.safe_', 'load(config_path.read)'].join,
+  ['config == EXPECTED_ISSUE_TEMPLATE', '_CONFIG'].join
+].each do |fragment|
+  failures << "scripts/check-roadmap-docs.rb must include #{fragment.inspect}" unless checker_source.include?(fragment)
+end
+
 if ROOT.join('AGENTS.md').file?
   agents = read('AGENTS.md')
   ['make check', 'SCOPE.md', 'secrets'].each do |phrase|
@@ -115,6 +139,18 @@ hosted_documentation_contract.each do |path, phrases|
   phrases.each do |phrase|
     failures << "#{path} must document hosted validation: #{phrase}" unless contents.include?(phrase)
   end
+end
+
+issue_template_documentation_contract = {
+  'README.md' => 'exact issue-template schema and reviewed contact copy',
+  'SECURITY.md' => 'exact issue-template schema and reviewed contact copy',
+  'VISION.md' => 'exact issue-template schema and reviewed contact copy',
+  'CHANGES.md' => 'exact issue-template schema and reviewed contact copy'
+}
+issue_template_documentation_contract.each do |path, phrase|
+  next unless ROOT.join(path).file?
+
+  failures << "#{path} must document #{phrase}" unless read(path).gsub(/\s+/, ' ').include?(phrase)
 end
 
 required_ignore_entries = [
@@ -246,73 +282,8 @@ config_path = ROOT.join('.github/ISSUE_TEMPLATE/config.yml')
 if config_path.file?
   begin
     config = YAML.safe_load(config_path.read) || {}
-    unless config['blank_issues_enabled'] == false
-      failures << '.github/ISSUE_TEMPLATE/config.yml must disable blank issues until roadmap scope is defined'
-    end
-
-    contact_links = Array(config['contact_links'])
-    if contact_links.empty?
-      failures << '.github/ISSUE_TEMPLATE/config.yml must include repository-scoped contact links'
-    end
-
-    name_counts = Hash.new(0)
-    url_counts = Hash.new(0)
-    contact_links.each do |link|
-      next unless link.is_a?(Hash)
-
-      name = link['name'].to_s.strip
-      url = link['url'].to_s.strip
-      name_counts[name] += 1 unless name.empty?
-      url_counts[url] += 1 unless url.empty?
-    end
-
-    duplicate_names = name_counts.select { |_name, count| count > 1 }.keys.sort
-    unless duplicate_names.empty?
-      failures << ".github/ISSUE_TEMPLATE/config.yml must not duplicate contact link names: #{duplicate_names.join(', ')}"
-    end
-
-    duplicate_urls = url_counts.select { |_url, count| count > 1 }.keys.sort
-    unless duplicate_urls.empty?
-      failures << ".github/ISSUE_TEMPLATE/config.yml must not duplicate contact link URLs: #{duplicate_urls.join(', ')}"
-    end
-
-    expected_contact_links = {
-      'Security Policy' => 'https://github.com/garethpaul/roadmap/security/policy',
-      'Repository Scope' => 'https://github.com/garethpaul/roadmap/blob/main/SCOPE.md'
-    }
-    unexpected_contact_links = contact_links.each_with_object([]) do |link, names|
-      next unless link.is_a?(Hash)
-
-      name = link['name'].to_s.strip
-      names << name unless name.empty? || expected_contact_links.key?(name)
-    end.uniq.sort
-    unless unexpected_contact_links.empty?
-      failures << ".github/ISSUE_TEMPLATE/config.yml must not add unapproved contact links: #{unexpected_contact_links.join(', ')}"
-    end
-
-    expected_contact_links.each do |name, expected_url|
-      matching_link = contact_links.find { |link| link.is_a?(Hash) && link['name'].to_s == name }
-      if matching_link.nil?
-        failures << ".github/ISSUE_TEMPLATE/config.yml must include the #{name} contact link"
-      elsif matching_link['url'].to_s != expected_url
-        failures << ".github/ISSUE_TEMPLATE/config.yml #{name} contact link must use #{expected_url}"
-      end
-    end
-
-    contact_links.each do |link|
-      unless link.is_a?(Hash)
-        failures << '.github/ISSUE_TEMPLATE/config.yml contact link must be a mapping'
-        next
-      end
-
-      %w[name url about].each do |field|
-        failures << ".github/ISSUE_TEMPLATE/config.yml contact link is missing #{field}" if link[field].to_s.strip.empty?
-      end
-
-      url = link['url'].to_s
-      unless url.start_with?('https://github.com/garethpaul/roadmap')
-        failures << ".github/ISSUE_TEMPLATE/config.yml contact link #{url} must stay scoped to this repository"
-      end
+    unless config == EXPECTED_ISSUE_TEMPLATE_CONFIG
+      failures << '.github/ISSUE_TEMPLATE/config.yml must match the exact reviewed placeholder schema and contact copy'
     end
   rescue Psych::SyntaxError => e
     failures << ".github/ISSUE_TEMPLATE/config.yml is invalid YAML: #{e.message}"

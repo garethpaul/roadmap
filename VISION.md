@@ -27,7 +27,8 @@ Priority:
 - Keep the overview image aligned with the placeholder status
 - Keep issue-template policy visible from README until scope is defined
 - Keep issue-template contact links scoped to the security policy and SCOPE.md,
-  with unique names and URLs and no additional routes before scope is defined
+  with unique names and URLs, the exact issue-template schema and reviewed
+  contact copy, and no additional routes before scope is defined
 - Keep README maintenance notes linked to every canonical plan
 - Keep SECURITY explicit that reports do not create roadmap commitments
 - Keep the dependency-free documentation contract enforced on Ruby 2.7 and

@@ -73,7 +73,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   expected policy until roadmap scope is defined.
 - The integrity checker requires the issue-template contact links to include
   only the repository security policy and `SCOPE.md`, with unique names and
-  URLs, until broader roadmap scope is defined.
+  URLs, until broader roadmap scope is defined. It also preserves the exact
+  issue-template schema and reviewed contact copy.
 - The integrity checker requires README maintenance notes to reference every
   canonical plan under `docs/plans`.
 
@@ -122,6 +123,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   documentation validation baseline.
 - See `docs/plans/2026-06-12-credential-free-document-validation.md` for the
   exact credential-free Ruby validation contract.
+- See `docs/plans/2026-06-12-issue-template-schema-contract.md` for the exact
+  issue-template schema and reviewed contact copy.
 
 ## Contributing
 

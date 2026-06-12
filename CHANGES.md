@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-12
+
+- Required the exact issue-template schema and reviewed contact copy so extra
+  fields, reordered routes, or support-language drift fail validation.
+
 ## 2026-06-10
 
 - Added pinned, least-privilege GitHub Actions validation for the roadmap

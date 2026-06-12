@@ -44,7 +44,8 @@ persisted checkout credentials. The local baseline fails closed when it cannot
 inspect tracked secret and editor metadata paths.
 
 Until roadmap scope is defined, issue-template contact routes are limited to
-this security policy and `SCOPE.md`.
+this security policy and `SCOPE.md`; the exact issue-template schema and
+reviewed contact copy remain part of the validated boundary.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
