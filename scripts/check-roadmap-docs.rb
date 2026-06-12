@@ -3,6 +3,7 @@
 
 require 'pathname'
 require 'open3'
+require 'uri'
 require 'yaml'
 
 ROOT = Pathname.new(__dir__).parent.expand_path
@@ -74,6 +75,15 @@ def read(path)
   ROOT.join(path).read
 end
 
+def local_markdown_targets(contents)
+  contents.scan(/!?\[[^\]]*\]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/).flatten.filter_map do |target|
+    target = target.delete_prefix('<').delete_suffix('>')
+    next if target.start_with?('#', '//') || target.match?(/\A[a-z][a-z0-9+.-]*:/i)
+
+    URI::DEFAULT_PARSER.unescape(target.split(/[?#]/, 2).first)
+  end
+end
+
 if CANONICAL_PLAN.file?
   # The canonical plan records the current documentation-only baseline.
 else
@@ -114,7 +124,10 @@ checker_source = Pathname.new(__FILE__).read
 [
   ['EXPECTED_ISSUE_TEMPLATE', '_CONFIG = {'].join,
   ['YAML.safe_', 'load(config_path.read)'].join,
-  ['config == EXPECTED_ISSUE_TEMPLATE', '_CONFIG'].join
+  ['config == EXPECTED_ISSUE_TEMPLATE', '_CONFIG'].join,
+  "'git', '-C', ROOT.to_s, 'ls-files', '--stage', '-z'",
+  'local_markdown_targets(source.read)',
+  'resolved.file? && !resolved.symlink?'
 ].each do |fragment|
   failures << "scripts/check-roadmap-docs.rb must include #{fragment.inspect}" unless checker_source.include?(fragment)
 end
@@ -182,6 +195,35 @@ if tracked_status.success?
   end
 else
   failures << "documentation validation must inspect tracked secret and editor metadata paths: #{tracked_error.strip}"
+end
+
+index_output, index_error, index_status = Open3.capture3(
+  'git', '-C', ROOT.to_s, 'ls-files', '--stage', '-z'
+)
+tracked_paths = []
+if index_status.success?
+  index_output.split("\0").reject(&:empty?).each do |entry|
+    metadata, path = entry.split("\t", 2)
+    mode, _object_id, stage = metadata.to_s.split(' ', 3)
+    if path.nil? || mode != '100644' || stage != '0'
+      failures << "tracked repository entries must be stage-0 regular blobs: #{entry.inspect}"
+      next
+    end
+    tracked_paths << path
+  end
+else
+  failures << "documentation validation must inspect tracked file modes: #{index_error.strip}"
+end
+
+tracked_paths.grep(/\.md\z/).each do |path|
+  source = ROOT.join(path)
+  local_markdown_targets(source.read).each do |target|
+    resolved = source.dirname.join(target).cleanpath
+    within_repository = resolved.to_s.start_with?("#{ROOT}#{File::SEPARATOR}")
+    unless within_repository && resolved.file? && !resolved.symlink?
+      failures << "#{path} references missing or unsafe local target #{target.inspect}"
+    end
+  end
 end
 
 if ROOT.join('README.md').file?
