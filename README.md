@@ -14,6 +14,8 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `README.md` - project overview and local usage notes
 - `CHANGES.md` - maintenance history for documentation integrity checks
 - `Makefile` - local verification entry points
+- `.github/workflows/check.yml` - hosted Ruby documentation validation
+- `.gitignore` - local secret, editor, dependency, and coverage exclusions
 - `docs/plans` - completed maintenance plans for the current baseline
 - `plans` - historical implementation notes
 - `scripts` - documentation integrity validators
@@ -54,6 +56,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 ## Testing and Verification
 
 - `make check` runs the documentation integrity checks for this placeholder repository.
+- GitHub Actions runs the same no-install contract on Ruby 2.7 and Ruby 3.3
+  using a fixed Ubuntu 24.04 runner, pinned actions, read-only repository
+  permissions, and checkout credential persistence disabled.
 - The integrity checker also requires completed canonical plans under `docs/plans`.
 - The integrity checker keeps the overview SVG aligned with the placeholder and
   non-commitment language.
@@ -67,7 +72,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   `.github/ISSUE_TEMPLATE/config.yml`, where blank issues disabled remains the
   expected policy until roadmap scope is defined.
 - The integrity checker requires the issue-template contact links to include
-  the repository security policy and `SCOPE.md`, with unique names and URLs.
+  only the repository security policy and `SCOPE.md`, with unique names and
+  URLs, until broader roadmap scope is defined.
 - The integrity checker requires README maintenance notes to reference every
   canonical plan under `docs/plans`.
 
@@ -76,6 +82,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 ## Configuration and Secrets
 
 - No required secret or credential file was identified in the repository scan. If you add integrations later, keep secrets out of git.
+- The integrity checker rejects tracked `.env` files and common editor metadata;
+  a non-secret `.env.example` template remains allowed.
 
 ## Security and Privacy Notes
 
@@ -108,6 +116,12 @@ When the required SDK or runtime is unavailable, use static checks and source re
   full scope prerequisite checklist guard.
 - See `docs/plans/2026-06-10-issue-template-contact-link-uniqueness.md` for
   the contact-link uniqueness guard.
+- See `docs/plans/2026-06-10-issue-template-contact-link-allowlist.md` for the
+  placeholder contact-link allowlist.
+- See `docs/plans/2026-06-10-hosted-document-validation.md` for the hosted
+  documentation validation baseline.
+- See `docs/plans/2026-06-12-credential-free-document-validation.md` for the
+  exact credential-free Ruby validation contract.
 
 ## Contributing
 

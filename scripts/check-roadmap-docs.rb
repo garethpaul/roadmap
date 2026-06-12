@@ -2,12 +2,53 @@
 # frozen_string_literal: true
 
 require 'pathname'
+require 'open3'
 require 'yaml'
 
 ROOT = Pathname.new(__dir__).parent.expand_path
 DOCS_PLANS = ROOT.join('docs/plans')
 CANONICAL_PLAN = DOCS_PLANS.join('2026-06-08-roadmap-baseline.md')
 SCOPE_CHECKLIST_PLAN = DOCS_PLANS.join('2026-06-09-scope-prerequisite-checklist-guard.md')
+HOSTED_VALIDATION_PLAN = DOCS_PLANS.join('2026-06-10-hosted-document-validation.md')
+HOSTED_VALIDATION_WORKFLOW = ROOT.join('.github/workflows/check.yml')
+EXPECTED_HOSTED_VALIDATION_WORKFLOW = <<~YAML
+  name: Check
+
+  on:
+    push:
+    pull_request:
+    workflow_dispatch:
+
+  permissions:
+    contents: read
+
+  concurrency:
+    group: check-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+  jobs:
+    documentation:
+      name: Ruby ${{ matrix.ruby-version }} documentation
+      runs-on: ubuntu-24.04
+      timeout-minutes: 5
+      strategy:
+        fail-fast: false
+        matrix:
+          ruby-version: ["2.7", "3.3"]
+      steps:
+        - name: Check out repository
+          uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+          with:
+            persist-credentials: false
+
+        - name: Set up Ruby
+          uses: ruby/setup-ruby@89f90524b88a01fe6e0b732220432cc6142926af # v1.313.0
+          with:
+            ruby-version: ${{ matrix.ruby-version }}
+
+        - name: Validate roadmap documents
+          run: make check
+YAML
 failures = []
 
 def rel(path)
@@ -24,6 +65,16 @@ else
   failures << "#{rel(CANONICAL_PLAN)} is missing"
 end
 failures << "#{rel(SCOPE_CHECKLIST_PLAN)} is missing" unless SCOPE_CHECKLIST_PLAN.file?
+failures << "#{rel(HOSTED_VALIDATION_PLAN)} is missing" unless HOSTED_VALIDATION_PLAN.file?
+
+if HOSTED_VALIDATION_WORKFLOW.file?
+  workflow = HOSTED_VALIDATION_WORKFLOW.read
+  unless workflow == EXPECTED_HOSTED_VALIDATION_WORKFLOW
+    failures << "#{rel(HOSTED_VALIDATION_WORKFLOW)} must match the reviewed credential-free contract"
+  end
+else
+  failures << "#{rel(HOSTED_VALIDATION_WORKFLOW)} is missing"
+end
 
 docs_plans = Dir.glob(DOCS_PLANS.join('*.md')).sort
 if docs_plans.empty?
@@ -32,14 +83,69 @@ end
 
 docs_plans.each do |plan_path|
   plan = File.read(plan_path)
-  unless plan.include?('Status: Completed') && plan.include?('make check')
+  status_lines = plan.lines.map(&:chomp).select { |line| line.match?(/\A(?:## )?Status:/) }
+  completed_statuses = status_lines.select { |line| ['Status: Completed', '## Status: Completed'].include?(line) }
+  unless status_lines.length == 1 && completed_statuses.length == 1 && plan.include?('make check')
     failures << "#{rel(plan_path)} must record completed status and make check verification"
   end
 end
 
-required_docs = %w[README.md SCOPE.md VISION.md SECURITY.md docs/readme-overview.svg]
+required_docs = %w[.gitignore AGENTS.md README.md SCOPE.md VISION.md SECURITY.md docs/readme-overview.svg]
 required_docs.each do |path|
   failures << "#{path} is missing" unless ROOT.join(path).file?
+end
+
+if ROOT.join('AGENTS.md').file?
+  agents = read('AGENTS.md')
+  ['make check', 'SCOPE.md', 'secrets'].each do |phrase|
+    failures << "AGENTS.md must state: #{phrase}" unless agents.include?(phrase)
+  end
+end
+
+hosted_documentation_contract = {
+  'README.md' => ['GitHub Actions', 'Ruby 2.7', 'Ruby 3.3', 'checkout credential persistence disabled'],
+  'SECURITY.md' => ['GitHub Actions', 'persisted checkout credentials', 'tracked secret and editor metadata'],
+  'VISION.md' => ['Ruby 2.7', 'Ruby 3.3', 'credential-free GitHub Actions validation'],
+  'CHANGES.md' => ['Ruby 2.7 and Ruby 3.3', 'persisted checkout credentials']
+}
+hosted_documentation_contract.each do |path, phrases|
+  next unless ROOT.join(path).file?
+
+  contents = read(path).gsub(/\s+/, ' ')
+  phrases.each do |phrase|
+    failures << "#{path} must document hosted validation: #{phrase}" unless contents.include?(phrase)
+  end
+end
+
+required_ignore_entries = [
+  '.env',
+  '.env.*',
+  '!.env.example',
+  '.DS_Store',
+  '.idea/',
+  '.vscode/',
+  '*.iml',
+  'vendor/',
+  'coverage/'
+]
+if ROOT.join('.gitignore').file?
+  ignore_entries = read('.gitignore').lines.map(&:chomp)
+  required_ignore_entries.each do |entry|
+    failures << ".gitignore must include #{entry.inspect}" unless ignore_entries.include?(entry)
+  end
+end
+
+tracked_output, tracked_error, tracked_status = Open3.capture3(
+  'git', '-C', ROOT.to_s, 'ls-files',
+  '.env', '.env.*', '.idea/**', '.vscode/**', '*.iml'
+)
+if tracked_status.success?
+  tracked_local_metadata = tracked_output.lines.map(&:chomp).reject { |entry| entry.empty? || entry == '.env.example' }
+  unless tracked_local_metadata.empty?
+    failures << "local secrets or editor metadata must not be tracked: #{tracked_local_metadata.join(', ')}"
+  end
+else
+  failures << "documentation validation must inspect tracked secret and editor metadata paths: #{tracked_error.strip}"
 end
 
 if ROOT.join('README.md').file?
@@ -174,6 +280,16 @@ if config_path.file?
       'Security Policy' => 'https://github.com/garethpaul/roadmap/security/policy',
       'Repository Scope' => 'https://github.com/garethpaul/roadmap/blob/main/SCOPE.md'
     }
+    unexpected_contact_links = contact_links.each_with_object([]) do |link, names|
+      next unless link.is_a?(Hash)
+
+      name = link['name'].to_s.strip
+      names << name unless name.empty? || expected_contact_links.key?(name)
+    end.uniq.sort
+    unless unexpected_contact_links.empty?
+      failures << ".github/ISSUE_TEMPLATE/config.yml must not add unapproved contact links: #{unexpected_contact_links.join(', ')}"
+    end
+
     expected_contact_links.each do |name, expected_url|
       matching_link = contact_links.find { |link| link.is_a?(Hash) && link['name'].to_s == name }
       if matching_link.nil?

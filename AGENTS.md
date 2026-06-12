@@ -41,6 +41,7 @@
 ## Safety and gotchas
 
 - No required secret or credential file was identified in the repository scan. If you add integrations later, keep secrets out of git.
+- Keep hosted validation credential-free and never commit secrets or editor metadata.
 - See `SCOPE.md` before adding roadmap content or templates.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
