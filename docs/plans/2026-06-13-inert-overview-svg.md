@@ -1,6 +1,6 @@
 # Inert Overview SVG Contract
 
-## Status: In Progress
+## Status: Completed
 
 ## Context
 
@@ -25,7 +25,16 @@ scripts, foreign HTML, event handlers, or linked resources.
 - Add focused hostile mutation tests and wire them into `make check`.
 - Preserve the checked-in SVG bytes and placeholder wording.
 
-## Planned Verification
+## Work Completed
+
+- Added a reusable REXML contract for the overview asset.
+- Required the canonical SVG root, namespace, and title/description relationship.
+- Rejected active/foreign elements, event handlers, linked resources, and CSS
+  `url()` references without changing the checked-in SVG bytes.
+- Added seven focused tests with 57 assertions and wired them into `make check`.
+- Updated README, security, vision, change, and maintenance-plan documentation.
+
+## Verification
 
 - `ruby scripts/test-overview-svg-contract.rb`
 - `ruby scripts/check-roadmap-docs.rb`
@@ -33,6 +42,10 @@ scripts, foreign HTML, event handlers, or linked resources.
 - Read-only network-isolated Ruby 2.7 and Ruby 3.3 checks
 - Focused malformed, active-content, accessibility, and wiring mutations
 - `git diff --check`
+
+The focused suite passed 7 tests and 57 assertions. Local and network-isolated
+Ruby 2.7 and Ruby 3.3 `make check` runs passed without dependencies or writes to
+the repository.
 
 ## Scope Boundary
 

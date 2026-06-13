@@ -25,6 +25,7 @@ Priority:
 - Keep scope prerequisites explicit about roadmap type, owner, audience,
   timeframe, and commitment level
 - Keep the overview image aligned with the placeholder status
+- Keep the overview image well-formed, accessible, self-contained, and inert
 - Keep issue-template policy visible from README until scope is defined
 - Keep issue-template contact links scoped to the security policy and SCOPE.md,
   with unique names and URLs, the exact issue-template schema and reviewed

@@ -7,6 +7,7 @@ lint:
 	$(RUBY) "$(ROOT)/scripts/check-roadmap-docs.rb"
 
 test: lint
+	$(RUBY) "$(ROOT)/scripts/test-overview-svg-contract.rb"
 
 build:
 	@echo "documentation-only repository; no build step required"

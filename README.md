@@ -64,7 +64,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   permissions, and checkout credential persistence disabled.
 - The integrity checker also requires completed canonical plans under `docs/plans`.
 - The integrity checker keeps the overview SVG aligned with the placeholder and
-  non-commitment language.
+  non-commitment language. A structured XML contract also requires the
+  accessible SVG root and rejects scripts, foreign content, handlers, linked
+  resources, and CSS `url()` references.
 - The integrity checker keeps `VISION.md` aligned with the same no-commitment
   language as `README.md` and `SCOPE.md`.
 - The integrity checker keeps `SECURITY.md` explicit that security reports are
@@ -130,6 +132,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   issue-template schema and reviewed contact copy.
 - See `docs/plans/2026-06-12-document-link-integrity.md` for tracked file-mode
   and repository-local Markdown link validation.
+- See `docs/plans/2026-06-13-inert-overview-svg.md` for the well-formed,
+  accessible, inert overview asset contract.
 
 ## Contributing
 

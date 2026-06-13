@@ -5,6 +5,7 @@ require 'pathname'
 require 'open3'
 require 'uri'
 require 'yaml'
+require_relative 'overview-svg-contract'
 
 ROOT = Pathname.new(__dir__).parent.expand_path
 DOCS_PLANS = ROOT.join('docs/plans')
@@ -293,6 +294,9 @@ end
 
 if ROOT.join('docs/readme-overview.svg').file?
   overview = read('docs/readme-overview.svg')
+  OverviewSvgContract.validate(overview).each do |failure|
+    failures << "docs/readme-overview.svg #{failure}"
+  end
   [
     'placeholder planning repository',
     'No active roadmap commitments are defined',
