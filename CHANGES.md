@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-13
+
+- Added structured overview SVG validation for XML integrity, accessible naming,
+  and rejection of scripts, foreign content, handlers, and linked resources.
+
 ## 2026-06-12
 
 - Added fail-closed tracked file-mode and repository-local Markdown link
