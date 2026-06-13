@@ -82,6 +82,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   issue-template schema and reviewed contact copy.
 - The integrity checker requires README maintenance notes to reference every
   canonical plan under `docs/plans`.
+- Repository-local Markdown fragments must resolve to GitHub-style heading
+  anchors in same-file or cross-file Markdown targets; fragments on non-Markdown
+  files and malformed percent escapes are rejected.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -134,6 +137,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   and repository-local Markdown link validation.
 - See `docs/plans/2026-06-13-inert-overview-svg.md` for the well-formed,
   accessible, inert overview asset contract.
+- See `docs/plans/2026-06-13-markdown-anchor-integrity.md` for same-file and
+  cross-file heading-anchor validation.
 
 ## Contributing
 

@@ -2,6 +2,8 @@
 
 ## 2026-06-13
 
+- Added deterministic GitHub-style heading-anchor validation for same-file and
+  cross-file Markdown fragments, including duplicate heading suffixes.
 - Added structured overview SVG validation for XML integrity, accessible naming,
   and rejection of scripts, foreign content, handlers, and linked resources.
 

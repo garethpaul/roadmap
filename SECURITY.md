@@ -53,6 +53,9 @@ Hosted validation rejects symlinks, gitlinks, executable-mode drift, unresolved
 relative Markdown links, and local links that escape the repository. This keeps
 reviewed documentation content tied to ordinary tracked blobs.
 
+Local Markdown fragments must resolve to headings in Markdown targets;
+malformed escapes or fragments attached to non-Markdown files are rejected.
+
 The README overview SVG must remain well-formed, self-contained, and inert.
 Scripts, foreign HTML, event handlers, linked resources, and CSS `url()`
 references are rejected by the documentation gate.

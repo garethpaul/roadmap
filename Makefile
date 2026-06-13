@@ -7,6 +7,7 @@ lint:
 	$(RUBY) "$(ROOT)/scripts/check-roadmap-docs.rb"
 
 test: lint
+	$(RUBY) "$(ROOT)/scripts/test-markdown-link-contract.rb"
 	$(RUBY) "$(ROOT)/scripts/test-overview-svg-contract.rb"
 
 build:

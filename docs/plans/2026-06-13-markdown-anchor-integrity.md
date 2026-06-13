@@ -1,6 +1,6 @@
 # Markdown Anchor Integrity
 
-## Status: Pending
+## Status: Completed
 
 ## Context
 
@@ -59,9 +59,30 @@ mutations, and integrity scans, then record exact hosted evidence.
 
 ## Work Completed
 
-Pending implementation.
+- Extracted repository-local inline-link parsing and path safety into a reusable
+  dependency-free Ruby contract.
+- Added deterministic GitHub-style ATX heading anchors with duplicate suffixes
+  and same-file/cross-file fragment validation.
+- Rejected missing anchors, non-Markdown fragments, malformed percent escapes,
+  missing or escaping paths, and preserved external URL exclusion.
+- Added focused Minitest coverage, Make wiring, checker integration, and
+  synchronized repository documentation.
 
 ## Verification Results
 
-Pending implementation and validation; `make check` evidence will be recorded
-before completion.
+- `ruby scripts/test-markdown-link-contract.rb` passed 6 tests and 23 assertions.
+- Local and outside-directory `make check` passed the checker, both contract
+  suites, and the documentation-only build boundary.
+- The hostile gate rejected all twelve hostile mutations covering missing
+  same-file and cross-file anchors, fragment bypass, duplicate suffixes,
+  whitespace, rendered-markup, and literal-underscore normalization, malformed
+  escapes, non-Markdown fragments,
+  checker and Make wiring, and incomplete plan status.
+- Network-isolated, read-only Ruby 2.7.8 and Ruby 3.3.11 containers passed the
+  focused contract and syntax checks. The host full gate remains authoritative
+  for Git index inspection.
+- GitHub's section-link documentation was used as the primary normalization
+  reference: lowercase letters, space-to-hyphen conversion, removal of other
+  whitespace and punctuation, markup removal, and duplicate numeric suffixes.
+- Workflow YAML parsing, exact-base protected-file comparison, credential and
+  generated-artifact screening, and `git diff --check` pass before shipping.
