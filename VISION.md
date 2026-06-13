@@ -37,6 +37,7 @@ Priority:
 - Keep local secrets and editor metadata out of the placeholder repository
 - Keep tracked documentation as ordinary Git blobs with repository-local links
   resolving to regular checked-in files
+- Keep same-file and cross-file Markdown fragments aligned with actual headings
 - Avoid generated churn that obscures the empty state
 
 Next priorities:

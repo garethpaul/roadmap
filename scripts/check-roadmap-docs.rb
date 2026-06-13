@@ -3,8 +3,8 @@
 
 require 'pathname'
 require 'open3'
-require 'uri'
 require 'yaml'
+require_relative 'markdown-link-contract'
 require_relative 'overview-svg-contract'
 
 ROOT = Pathname.new(__dir__).parent.expand_path
@@ -12,7 +12,9 @@ DOCS_PLANS = ROOT.join('docs/plans')
 CANONICAL_PLAN = DOCS_PLANS.join('2026-06-08-roadmap-baseline.md')
 SCOPE_CHECKLIST_PLAN = DOCS_PLANS.join('2026-06-09-scope-prerequisite-checklist-guard.md')
 HOSTED_VALIDATION_PLAN = DOCS_PLANS.join('2026-06-10-hosted-document-validation.md')
+MARKDOWN_ANCHOR_PLAN = DOCS_PLANS.join('2026-06-13-markdown-anchor-integrity.md')
 HOSTED_VALIDATION_WORKFLOW = ROOT.join('.github/workflows/check.yml')
+MAKEFILE = ROOT.join('Makefile')
 EXPECTED_HOSTED_VALIDATION_WORKFLOW = <<~YAML
   name: Check
 
@@ -76,15 +78,6 @@ def read(path)
   ROOT.join(path).read
 end
 
-def local_markdown_targets(contents)
-  contents.scan(/!?\[[^\]]*\]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/).flatten.filter_map do |target|
-    target = target.delete_prefix('<').delete_suffix('>')
-    next if target.start_with?('#', '//') || target.match?(/\A[a-z][a-z0-9+.-]*:/i)
-
-    URI::DEFAULT_PARSER.unescape(target.split(/[?#]/, 2).first)
-  end
-end
-
 if CANONICAL_PLAN.file?
   # The canonical plan records the current documentation-only baseline.
 else
@@ -92,6 +85,35 @@ else
 end
 failures << "#{rel(SCOPE_CHECKLIST_PLAN)} is missing" unless SCOPE_CHECKLIST_PLAN.file?
 failures << "#{rel(HOSTED_VALIDATION_PLAN)} is missing" unless HOSTED_VALIDATION_PLAN.file?
+
+if MARKDOWN_ANCHOR_PLAN.file?
+  markdown_anchor_plan = MARKDOWN_ANCHOR_PLAN.read
+  [
+    'passed 6 tests and 23 assertions',
+    'outside-directory `make check` passed',
+    'rejected all twelve hostile mutations',
+    'read-only Ruby 2.7.8 and Ruby 3.3.11 containers passed',
+    'focused contract and syntax checks'
+  ].each do |evidence|
+    unless markdown_anchor_plan.include?(evidence)
+      failures << "#{rel(MARKDOWN_ANCHOR_PLAN)} must record verification evidence #{evidence.inspect}"
+    end
+  end
+else
+  failures << "#{rel(MARKDOWN_ANCHOR_PLAN)} is missing"
+end
+
+if MAKEFILE.file?
+  makefile = MAKEFILE.read
+  %w[
+    scripts/test-markdown-link-contract.rb
+    scripts/test-overview-svg-contract.rb
+  ].each do |test_path|
+    failures << "Makefile must run #{test_path}" unless makefile.include?(test_path)
+  end
+else
+  failures << 'Makefile is missing'
+end
 
 if HOSTED_VALIDATION_WORKFLOW.file?
   workflow = HOSTED_VALIDATION_WORKFLOW.read
@@ -127,8 +149,7 @@ checker_source = Pathname.new(__FILE__).read
   ['YAML.safe_', 'load(config_path.read)'].join,
   ['config == EXPECTED_ISSUE_TEMPLATE', '_CONFIG'].join,
   "'git', '-C', ROOT.to_s, 'ls-files', '--stage', '-z'",
-  'local_markdown_targets(source.read)',
-  'resolved.file? && !resolved.symlink?'
+  'MarkdownLinkContract.validate(source, ROOT)'
 ].each do |fragment|
   failures << "scripts/check-roadmap-docs.rb must include #{fragment.inspect}" unless checker_source.include?(fragment)
 end
@@ -218,12 +239,8 @@ end
 
 tracked_paths.grep(/\.md\z/).each do |path|
   source = ROOT.join(path)
-  local_markdown_targets(source.read).each do |target|
-    resolved = source.dirname.join(target).cleanpath
-    within_repository = resolved.to_s.start_with?("#{ROOT}#{File::SEPARATOR}")
-    unless within_repository && resolved.file? && !resolved.symlink?
-      failures << "#{path} references missing or unsafe local target #{target.inspect}"
-    end
+  MarkdownLinkContract.validate(source, ROOT).each do |failure|
+    failures << "#{path} #{failure}"
   end
 end
 
