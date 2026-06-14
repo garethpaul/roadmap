@@ -141,6 +141,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   cross-file heading-anchor validation.
 - See `docs/plans/2026-06-14-make-root-override-protection.md` for the
   caller-resistant, location-independent Make validation root.
+- See `docs/plans/2026-06-14-fenced-heading-anchor-integrity.md` for
+  fence-aware Markdown heading-anchor validation.
 
 ## Contributing
 
