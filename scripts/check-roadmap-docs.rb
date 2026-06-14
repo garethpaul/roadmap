@@ -14,6 +14,7 @@ SCOPE_CHECKLIST_PLAN = DOCS_PLANS.join('2026-06-09-scope-prerequisite-checklist-
 HOSTED_VALIDATION_PLAN = DOCS_PLANS.join('2026-06-10-hosted-document-validation.md')
 MARKDOWN_ANCHOR_PLAN = DOCS_PLANS.join('2026-06-13-markdown-anchor-integrity.md')
 MAKE_ROOT_PLAN = DOCS_PLANS.join('2026-06-14-make-root-override-protection.md')
+FENCED_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-fenced-heading-anchor-integrity.md')
 HOSTED_VALIDATION_WORKFLOW = ROOT.join('.github/workflows/check.yml')
 MAKEFILE = ROOT.join('Makefile')
 EXPECTED_HOSTED_VALIDATION_WORKFLOW = <<~YAML
@@ -140,6 +141,22 @@ else
   failures << "#{rel(MAKE_ROOT_PLAN)} is missing"
 end
 
+if FENCED_HEADING_PLAN.file?
+  fenced_heading_plan = FENCED_HEADING_PLAN.read
+  [
+    'Status: Completed',
+    'repository-root and external-directory `make check` passed',
+    'Ten tests and 29 assertions passed',
+    'hostile fence mutations were rejected'
+  ].each do |evidence|
+    unless fenced_heading_plan.include?(evidence)
+      failures << "#{rel(FENCED_HEADING_PLAN)} must record verification evidence #{evidence.inspect}"
+    end
+  end
+else
+  failures << "#{rel(FENCED_HEADING_PLAN)} is missing"
+end
+
 if HOSTED_VALIDATION_WORKFLOW.file?
   workflow = HOSTED_VALIDATION_WORKFLOW.read
   unless workflow == EXPECTED_HOSTED_VALIDATION_WORKFLOW
@@ -177,6 +194,24 @@ checker_source = Pathname.new(__FILE__).read
   'MarkdownLinkContract.validate(source, ROOT)'
 ].each do |fragment|
   failures << "scripts/check-roadmap-docs.rb must include #{fragment.inspect}" unless checker_source.include?(fragment)
+end
+
+markdown_contract_source = read('scripts/markdown-link-contract.rb')
+unless markdown_contract_source.include?('fence_marker = nil') &&
+       markdown_contract_source.include?('fence_length = nil') &&
+       markdown_contract_source.include?('Regexp.escape(fence_marker)') &&
+       markdown_contract_source.include?("opening_fence[1].start_with?('~')")
+  failures << 'scripts/markdown-link-contract.rb must ignore headings inside matching fenced code blocks'
+end
+
+markdown_test_source = read('scripts/test-markdown-link-contract.rb')
+%w[
+  test_ignores_atx_headings_inside_backtick_and_tilde_fences
+  test_requires_matching_fence_marker_and_minimum_closing_length
+  test_requires_three_markers_and_valid_backtick_info
+  test_rejects_fragments_that_only_match_fenced_code
+].each do |test_name|
+  failures << "scripts/test-markdown-link-contract.rb must cover #{test_name}" unless markdown_test_source.include?(test_name)
 end
 
 if ROOT.join('AGENTS.md').file?

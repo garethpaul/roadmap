@@ -78,6 +78,69 @@ class MarkdownLinkContractTest < Minitest::Test
                  MarkdownLinkContract.heading_anchors("## Repeat\n## Repeat-1\n## Repeat\n")
   end
 
+  def test_ignores_atx_headings_inside_backtick_and_tilde_fences
+    markdown = <<~MARKDOWN
+      # Visible
+
+       ```ruby
+      # Hidden Backtick
+       ```
+
+      ~~~~ text
+      ## Hidden Tilde
+      ~~~~~
+
+      ## Visible Again
+    MARKDOWN
+
+    assert_equal %w[visible visible-again], MarkdownLinkContract.heading_anchors(markdown)
+  end
+
+  def test_requires_matching_fence_marker_and_minimum_closing_length
+    markdown = <<~MARKDOWN
+      ````
+      # Hidden
+      ```
+      ## Still Hidden After Short Close
+      ~~~~
+      ### Still Hidden After Wrong Marker
+      `````
+      # Visible After Valid Close
+      ~~~
+      ## Hidden In Unclosed Fence
+    MARKDOWN
+
+    assert_equal ['visible-after-valid-close'], MarkdownLinkContract.heading_anchors(markdown)
+  end
+
+  def test_requires_three_markers_and_valid_backtick_info
+    markdown = <<~MARKDOWN
+      ``
+      # Two Backticks
+      ``
+      ~~
+      ## Two Tildes
+      ~~
+      ```ruby`invalid
+      ### Backtick In Info
+      ```
+    MARKDOWN
+
+    assert_equal ['two-backticks', 'two-tildes', 'backtick-in-info'],
+                 MarkdownLinkContract.heading_anchors(markdown)
+  end
+
+  def test_rejects_fragments_that_only_match_fenced_code
+    with_docs do |root, source, target|
+      target.write("```text\n# Not A Heading\n```\n# Real Heading\n")
+      source.write("[Code heading](GUIDE.md#not-a-heading)\n[Real](GUIDE.md#real-heading)\n")
+
+      failures = MarkdownLinkContract.validate(source, root)
+      assert_includes failures, 'references missing Markdown anchor "not-a-heading" in "GUIDE.md"'
+      refute failures.any? { |failure| failure.include?('real-heading') }
+    end
+  end
+
   def test_repository_checker_and_makefile_run_the_contract
     checker = File.read(File.expand_path('check-roadmap-docs.rb', __dir__))
     makefile = File.read(File.expand_path('../Makefile', __dir__))

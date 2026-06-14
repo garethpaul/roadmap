@@ -1,6 +1,6 @@
 # Fenced Heading Anchor Integrity
 
-## Status: In Progress
+## Status: Completed
 
 ## Context
 
@@ -33,3 +33,18 @@ fragment even though GitHub renders it as code and creates no anchor.
 - Ruby 2.7 and Ruby 3.3 compatibility when available
 - hostile fence-open, marker, length, close, and completed-plan mutations
 - exact diff, generated-artifact, and credential-pattern audits
+
+## Verification Results
+
+- Ten tests and 29 assertions passed in the focused Markdown link contract.
+- The repository-root and external-directory `make check` passed after this
+  completed status was recorded.
+- Seven hostile fence mutations were rejected across minimum opener length,
+  backtick info strings, marker matching, closing length, active fence state,
+  closing transitions, and tilde support.
+- Read-only, network-isolated Ruby 2.7.8 and Ruby 3.3.11 containers each
+  passed the complete `make check` gate after a container-local Git
+  `safe.directory` ownership declaration; their focused runs also passed 10
+  tests and 29 assertions.
+- Final exact-diff, generated-artifact, and credential-pattern audits found
+  only the intended contract, test, checker, and completed-plan changes.

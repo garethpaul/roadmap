@@ -62,8 +62,29 @@ module MarkdownLinkContract
 
   def heading_anchors(contents)
     used = {}
+    fence_marker = nil
+    fence_length = nil
+
     contents.lines.filter_map do |line|
-      match = line.match(/\A {0,3}\#{1,6}\s+(.+?)\s*\#*\s*\z/)
+      content = line.chomp
+      if fence_marker
+        closing_fence = /\A {0,3}#{Regexp.escape(fence_marker)}{#{fence_length},}[ \t]*\z/
+        if content.match?(closing_fence)
+          fence_marker = nil
+          fence_length = nil
+        end
+        next
+      end
+
+      opening_fence = content.match(/\A {0,3}(`{3,}|~{3,})(.*)\z/)
+      if opening_fence &&
+         (opening_fence[1].start_with?('~') || !opening_fence[2].include?('`'))
+        fence_marker = opening_fence[1][0]
+        fence_length = opening_fence[1].length
+        next
+      end
+
+      match = content.match(/\A {0,3}\#{1,6}\s+(.+?)\s*\#*\s*\z/)
       next unless match
 
       base = heading_slug(match[1])
