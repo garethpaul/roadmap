@@ -139,6 +139,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   accessible, inert overview asset contract.
 - See `docs/plans/2026-06-13-markdown-anchor-integrity.md` for same-file and
   cross-file heading-anchor validation.
+- See `docs/plans/2026-06-14-make-root-override-protection.md` for the
+  caller-resistant, location-independent Make validation root.
 
 ## Contributing
 
