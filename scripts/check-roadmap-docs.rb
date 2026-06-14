@@ -13,6 +13,7 @@ CANONICAL_PLAN = DOCS_PLANS.join('2026-06-08-roadmap-baseline.md')
 SCOPE_CHECKLIST_PLAN = DOCS_PLANS.join('2026-06-09-scope-prerequisite-checklist-guard.md')
 HOSTED_VALIDATION_PLAN = DOCS_PLANS.join('2026-06-10-hosted-document-validation.md')
 MARKDOWN_ANCHOR_PLAN = DOCS_PLANS.join('2026-06-13-markdown-anchor-integrity.md')
+MAKE_ROOT_PLAN = DOCS_PLANS.join('2026-06-14-make-root-override-protection.md')
 HOSTED_VALIDATION_WORKFLOW = ROOT.join('.github/workflows/check.yml')
 MAKEFILE = ROOT.join('Makefile')
 EXPECTED_HOSTED_VALIDATION_WORKFLOW = <<~YAML
@@ -105,6 +106,13 @@ end
 
 if MAKEFILE.file?
   makefile = MAKEFILE.read
+  root_declaration = 'override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))'
+  unless makefile.lines.first&.chomp == root_declaration &&
+         makefile.scan(/^override ROOT :=/).length == 1 &&
+         makefile.scan(/^ROOT\s*[:?+]?=/).empty?
+    failures <<
+      'Makefile must define exactly one protected repository-derived ROOT declaration first'
+  end
   %w[
     scripts/test-markdown-link-contract.rb
     scripts/test-overview-svg-contract.rb
@@ -113,6 +121,23 @@ if MAKEFILE.file?
   end
 else
   failures << 'Makefile is missing'
+end
+
+if MAKE_ROOT_PLAN.file?
+  make_root_plan = MAKE_ROOT_PLAN.read
+  [
+    'Status: Completed',
+    '`make ROOT=/tmp check` passed',
+    'all five public Make aliases passed',
+    'Six hostile mutations were rejected',
+    'Ruby 2.7.8 and Ruby 3.3.11'
+  ].each do |evidence|
+    unless make_root_plan.include?(evidence)
+      failures << "#{rel(MAKE_ROOT_PLAN)} must record verification evidence #{evidence.inspect}"
+    end
+  end
+else
+  failures << "#{rel(MAKE_ROOT_PLAN)} is missing"
 end
 
 if HOSTED_VALIDATION_WORKFLOW.file?

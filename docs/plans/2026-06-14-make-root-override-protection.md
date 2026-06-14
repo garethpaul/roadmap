@@ -1,6 +1,6 @@
 # Make Root Override Protection
 
-## Status: Planned
+## Status: Completed
 
 ## Context
 
@@ -52,3 +52,23 @@ Run both contract suites, all Make aliases from root and externally, Ruby
 - root-declaration, checker, plan-status, README-index, and evidence mutations
 - Ruby syntax, workflow YAML, protected-file, secret, artifact, and
   `git diff --check` gates
+
+## Work Completed
+
+- Protected the Makefile-derived repository root from command-line and
+  environment overrides while preserving configurable Ruby selection.
+- Added an exact static declaration contract and completed-evidence checks.
+- Preserved the documentation-only build boundary and all existing content,
+  link, SVG, issue-template, and hosted-workflow contracts.
+
+## Verification Results
+
+- `ruby scripts/check-roadmap-docs.rb` and both focused contract suites passed.
+- `make ROOT=/tmp check` passed while still running repository-owned scripts.
+- From both the checkout and an external directory, all five public Make aliases passed.
+- Ruby 2.7.8 and Ruby 3.3.11 compatibility validation passed in network-isolated,
+  read-only containers.
+- Six hostile mutations were rejected across root declaration, checker
+  expectation, plan status, README indexing, and recorded evidence.
+- Ruby syntax, workflow YAML, protected-file, secret, generated-artifact, and
+  `git diff --check` gates passed before shipping.
