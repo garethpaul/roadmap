@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-14
+
+- Extended local fragment validation across ATX and simple Setext heading anchors
+  while preserving fenced-code exclusion and duplicate suffixes.
+
 ## 2026-06-13
 
 - Added deterministic GitHub-style heading-anchor validation for same-file and

@@ -15,6 +15,7 @@ HOSTED_VALIDATION_PLAN = DOCS_PLANS.join('2026-06-10-hosted-document-validation.
 MARKDOWN_ANCHOR_PLAN = DOCS_PLANS.join('2026-06-13-markdown-anchor-integrity.md')
 MAKE_ROOT_PLAN = DOCS_PLANS.join('2026-06-14-make-root-override-protection.md')
 FENCED_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-fenced-heading-anchor-integrity.md')
+SETEXT_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-setext-heading-anchor-validation.md')
 HOSTED_VALIDATION_WORKFLOW = ROOT.join('.github/workflows/check.yml')
 MAKEFILE = ROOT.join('Makefile')
 EXPECTED_HOSTED_VALIDATION_WORKFLOW = <<~YAML
@@ -157,6 +158,22 @@ else
   failures << "#{rel(FENCED_HEADING_PLAN)} is missing"
 end
 
+if SETEXT_HEADING_PLAN.file?
+  setext_heading_plan = SETEXT_HEADING_PLAN.read
+  [
+    'Status: Completed',
+    'repository-root and external-directory `make check` passed',
+    'Twelve tests and 33 assertions passed',
+    'hostile Setext mutations were rejected'
+  ].each do |evidence|
+    unless setext_heading_plan.include?(evidence)
+      failures << "#{rel(SETEXT_HEADING_PLAN)} must record verification evidence #{evidence.inspect}"
+    end
+  end
+else
+  failures << "#{rel(SETEXT_HEADING_PLAN)} is missing"
+end
+
 if HOSTED_VALIDATION_WORKFLOW.file?
   workflow = HOSTED_VALIDATION_WORKFLOW.read
   unless workflow == EXPECTED_HOSTED_VALIDATION_WORKFLOW
@@ -203,6 +220,12 @@ unless markdown_contract_source.include?('fence_marker = nil') &&
        markdown_contract_source.include?("opening_fence[1].start_with?('~')")
   failures << 'scripts/markdown-link-contract.rb must ignore headings inside matching fenced code blocks'
 end
+unless markdown_contract_source.include?('setext_candidate = nil') &&
+       markdown_contract_source.include?('setext_underline = content.match') &&
+       markdown_contract_source.include?('append_heading_anchor(anchors, used, setext_candidate)') &&
+       markdown_contract_source.include?('def setext_heading_candidate(content)')
+  failures << 'scripts/markdown-link-contract.rb must validate simple Setext heading anchors'
+end
 
 markdown_test_source = read('scripts/test-markdown-link-contract.rb')
 %w[
@@ -210,8 +233,20 @@ markdown_test_source = read('scripts/test-markdown-link-contract.rb')
   test_requires_matching_fence_marker_and_minimum_closing_length
   test_requires_three_markers_and_valid_backtick_info
   test_rejects_fragments_that_only_match_fenced_code
+  test_accepts_setext_heading_anchors_and_mixed_duplicate_suffixes
+  test_ignores_setext_lookalikes_inside_fences_and_after_blank_lines
 ].each do |test_name|
   failures << "scripts/test-markdown-link-contract.rb must cover #{test_name}" unless markdown_test_source.include?(test_name)
+end
+
+setext_guidance = {
+  'README.md' => 'ATX and simple Setext heading anchors',
+  'SECURITY.md' => 'ATX and simple Setext heading anchors',
+  'VISION.md' => 'ATX and simple Setext heading anchors',
+  'CHANGES.md' => 'ATX and simple Setext heading anchors'
+}
+setext_guidance.each do |path, phrase|
+  failures << "#{path} must document #{phrase}" unless read(path).include?(phrase)
 end
 
 if ROOT.join('AGENTS.md').file?

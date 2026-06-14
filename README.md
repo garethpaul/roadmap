@@ -85,6 +85,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - Repository-local Markdown fragments must resolve to GitHub-style heading
   anchors in same-file or cross-file Markdown targets; fragments on non-Markdown
   files and malformed percent escapes are rejected.
+- Anchor validation covers ATX and simple Setext heading anchors while ignoring
+  heading-like content inside matching fenced code blocks.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -143,6 +145,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   caller-resistant, location-independent Make validation root.
 - See `docs/plans/2026-06-14-fenced-heading-anchor-integrity.md` for
   fence-aware Markdown heading-anchor validation.
+- See `docs/plans/2026-06-14-setext-heading-anchor-validation.md` for ATX and
+  simple Setext heading anchors in repository-local fragment validation.
 
 ## Contributing
 

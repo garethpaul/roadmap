@@ -1,6 +1,6 @@
 # Setext Heading Anchor Validation
 
-status: in_progress
+Status: Completed
 
 ## Context
 
@@ -50,16 +50,19 @@ Files: `scripts/check-roadmap-docs.rb`, `README.md`, `SECURITY.md`, `VISION.md`,
   parsing.
 - Require completed plan and verification evidence.
 
-## Verification Planned
+## Verification Completed
 
-- Run the focused Markdown link contract suite.
-- Run every Make alias and the absolute Makefile check from an external
-  directory.
-- Run compatible Ruby 2.7 and Ruby 3.3 lanes when available.
-- Reject isolated mutations of Setext detection, fence exclusion, duplicate
-  anchors, false-positive fixtures, documentation, and plan evidence.
-- Run exact-path, generated-artifact, diff, conflict-marker, and changed-line
-  secret audits.
+- The focused Markdown link contract suite passed: Twelve tests and 33 assertions passed.
+- The repository-root and external-directory `make check` passed, together
+  with every public Make alias.
+- The local Ruby 2.7 lane passed. Ruby 3.3 remains covered by the pinned hosted
+  matrix because no local Ruby 3.3 runtime or cached container image was
+  available.
+- Seven hostile Setext mutations were rejected across detection, fence exclusion,
+  duplicate suffixes, list-marker and tab-indentation false positives,
+  documentation, and completed plan evidence.
+- Exact-path, generated-artifact, diff, conflict-marker, and changed-line secret
+  audits passed.
 
 ## Boundaries
 

@@ -62,10 +62,12 @@ module MarkdownLinkContract
 
   def heading_anchors(contents)
     used = {}
+    anchors = []
     fence_marker = nil
     fence_length = nil
+    setext_candidate = nil
 
-    contents.lines.filter_map do |line|
+    contents.lines.each do |line|
       content = line.chomp
       if fence_marker
         closing_fence = /\A {0,3}#{Regexp.escape(fence_marker)}{#{fence_length},}[ \t]*\z/
@@ -73,6 +75,7 @@ module MarkdownLinkContract
           fence_marker = nil
           fence_length = nil
         end
+        setext_candidate = nil
         next
       end
 
@@ -81,24 +84,53 @@ module MarkdownLinkContract
          (opening_fence[1].start_with?('~') || !opening_fence[2].include?('`'))
         fence_marker = opening_fence[1][0]
         fence_length = opening_fence[1].length
+        setext_candidate = nil
+        next
+      end
+
+      setext_underline = content.match(/\A {0,3}(?:=+|-+)[ \t]*\z/)
+      if setext_underline && setext_candidate
+        append_heading_anchor(anchors, used, setext_candidate)
+        setext_candidate = nil
         next
       end
 
       match = content.match(/\A {0,3}\#{1,6}\s+(.+?)\s*\#*\s*\z/)
-      next unless match
-
-      base = heading_slug(match[1])
-      next if base.empty?
-
-      anchor = base
-      suffix = 0
-      while used[anchor]
-        suffix += 1
-        anchor = "#{base}-#{suffix}"
+      if match
+        append_heading_anchor(anchors, used, match[1])
+        setext_candidate = nil
+        next
       end
-      used[anchor] = true
-      anchor
+
+      setext_candidate = setext_heading_candidate(content)
     end
+
+    anchors
+  end
+
+  def append_heading_anchor(anchors, used, heading)
+    base = heading_slug(heading)
+    return if base.empty?
+
+    anchor = base
+    suffix = 0
+    while used[anchor]
+      suffix += 1
+      anchor = "#{base}-#{suffix}"
+    end
+    used[anchor] = true
+    anchors << anchor
+  end
+
+  def setext_heading_candidate(content)
+    return nil if content.empty? || content.match?(/\A(?: {4}| {0,3}\t)/)
+    return nil if content.match?(/\A {0,3}(?:=+|-+)[ \t]*\z/)
+
+    candidate = content.sub(/\A {0,3}/, '').strip
+    return nil if candidate.match?(/\A(?:[-+*]|\d+[.)])(?:[ \t]+|\z)/)
+    return nil if candidate.match?(/\A>(?:[ \t]+|\z)/)
+
+    candidate.empty? ? nil : candidate
   end
 
   def heading_slug(heading)

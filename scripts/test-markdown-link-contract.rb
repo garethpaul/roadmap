@@ -141,6 +141,62 @@ class MarkdownLinkContractTest < Minitest::Test
     end
   end
 
+  def test_accepts_setext_heading_anchors_and_mixed_duplicate_suffixes
+    with_docs do |root, source, target|
+      target.write(<<~MARKDOWN)
+        Guide Title
+        ===========
+
+        ## Repeat
+
+        Repeat
+        ------
+
+        Repeat
+        ======
+      MARKDOWN
+      source.write(<<~MARKDOWN)
+        Home Title
+        ==========
+
+        [Home](#home-title)
+        [Guide](GUIDE.md#guide-title)
+        [Second repeat](GUIDE.md#repeat-1)
+        [Third repeat](GUIDE.md#repeat-2)
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+      assert_equal %w[guide-title repeat repeat-1 repeat-2],
+                   MarkdownLinkContract.heading_anchors(target.read)
+    end
+  end
+
+  def test_ignores_setext_lookalikes_inside_fences_and_after_blank_lines
+    markdown = <<~MARKDOWN
+      ```text
+      Hidden Setext
+      =============
+      ```
+
+      Visible Setext
+      --------------
+
+      ---
+
+      - List Item
+      ---
+
+      \tIndented code
+      ---
+
+      Final Heading
+      =============
+    MARKDOWN
+
+    assert_equal %w[visible-setext final-heading],
+                 MarkdownLinkContract.heading_anchors(markdown)
+  end
+
   def test_repository_checker_and_makefile_run_the_contract
     checker = File.read(File.expand_path('check-roadmap-docs.rb', __dir__))
     makefile = File.read(File.expand_path('../Makefile', __dir__))
