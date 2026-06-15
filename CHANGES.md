@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-15
+
+- Added repository-local validation for angle-wrapped destinations with literal spaces,
+  including missing paths, escaped paths, and fragment checks.
+
 ## 2026-06-14
 
 - Extended local fragment validation across ATX and simple Setext heading anchors

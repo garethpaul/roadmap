@@ -6,7 +6,7 @@ require 'uri'
 require 'cgi'
 
 module MarkdownLinkContract
-  LINK_PATTERN = /!?\[[^\]]*\]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/.freeze
+  LINK_PATTERN = /!?\[[^\]]*\]\((?:<([^>\n]*)>|([^)\s]+))(?:\s+["'][^"']*["'])?\)/.freeze
   SCHEME_PATTERN = /\A[a-z][a-z0-9+.-]*:/i.freeze
   INVALID_ESCAPE_PATTERN = /%(?![0-9a-f]{2})/i.freeze
 
@@ -42,8 +42,9 @@ module MarkdownLinkContract
   end
 
   def links(contents)
-    contents.scan(LINK_PATTERN).flatten.filter_map do |raw_target|
-      target = raw_target.delete_prefix('<').delete_suffix('>')
+    contents.scan(LINK_PATTERN).filter_map do |angle_target, bare_target|
+      target = angle_target.nil? ? bare_target : angle_target
+      raw_target = angle_target.nil? ? bare_target : "<#{angle_target}>"
       next if target.start_with?('//') || target.match?(SCHEME_PATTERN)
 
       path_and_query, raw_fragment = target.split('#', 2)

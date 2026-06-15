@@ -40,6 +40,8 @@ Priority:
 - Keep same-file and cross-file Markdown fragments aligned with actual headings
 - Keep ATX and simple Setext heading anchors covered without treating fenced
   code as document structure
+- Keep angle-wrapped destinations with literal spaces inside repository-local
+  link containment and fragment validation
 - Avoid generated churn that obscures the empty state
 
 Next priorities:

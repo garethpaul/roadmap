@@ -226,6 +226,10 @@ unless markdown_contract_source.include?('setext_candidate = nil') &&
        markdown_contract_source.include?('def setext_heading_candidate(content)')
   failures << 'scripts/markdown-link-contract.rb must validate simple Setext heading anchors'
 end
+unless markdown_contract_source.include?('(?:<([^>\\n]*)>|([^)\\s]+))') &&
+       markdown_contract_source.include?('angle_target.nil? ? bare_target : angle_target')
+  failures << 'scripts/markdown-link-contract.rb must validate angle-wrapped destinations with literal spaces'
+end
 
 markdown_test_source = read('scripts/test-markdown-link-contract.rb')
 %w[
@@ -235,6 +239,7 @@ markdown_test_source = read('scripts/test-markdown-link-contract.rb')
   test_rejects_fragments_that_only_match_fenced_code
   test_accepts_setext_heading_anchors_and_mixed_duplicate_suffixes
   test_ignores_setext_lookalikes_inside_fences_and_after_blank_lines
+  test_validates_literal_spaces_in_angle_destinations
 ].each do |test_name|
   failures << "scripts/test-markdown-link-contract.rb must cover #{test_name}" unless markdown_test_source.include?(test_name)
 end
@@ -246,6 +251,16 @@ setext_guidance = {
   'CHANGES.md' => 'ATX and simple Setext heading anchors'
 }
 setext_guidance.each do |path, phrase|
+  failures << "#{path} must document #{phrase}" unless read(path).include?(phrase)
+end
+
+angle_destination_guidance = {
+  'README.md' => 'angle-wrapped destinations with literal spaces',
+  'SECURITY.md' => 'angle-wrapped destinations with literal spaces',
+  'VISION.md' => 'angle-wrapped destinations with literal spaces',
+  'CHANGES.md' => 'angle-wrapped destinations with literal spaces'
+}
+angle_destination_guidance.each do |path, phrase|
   failures << "#{path} must document #{phrase}" unless read(path).include?(phrase)
 end
 

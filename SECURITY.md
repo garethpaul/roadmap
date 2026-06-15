@@ -57,6 +57,8 @@ Local Markdown fragments must resolve to headings in Markdown targets;
 malformed escapes or fragments attached to non-Markdown files are rejected.
 The dependency-free validator covers ATX and simple Setext heading anchors and
 ignores heading-like content inside matching fenced code blocks.
+It also validates angle-wrapped destinations with literal spaces instead of
+silently omitting those repository-local paths and fragments.
 
 The README overview SVG must remain well-formed, self-contained, and inert.
 Scripts, foreign HTML, event handlers, linked resources, and CSS `url()`

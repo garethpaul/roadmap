@@ -1,6 +1,6 @@
 # Markdown Angle Link Destinations
 
-Status: Planned
+Status: Completed
 
 ## Context
 
@@ -58,3 +58,26 @@ instead of validating their target path and fragment.
 - `scripts/check-roadmap-docs.rb`: require the parser and regression contracts.
 - `README.md`, `SECURITY.md`, `VISION.md`, `CHANGES.md`: document the supported
   local-link boundary.
+
+## Work Completed
+
+- Split inline destinations into angle-wrapped and ordinary alternatives, then
+  normalized both into the existing repository path and fragment validator.
+- Added focused coverage for valid literal-space paths plus missing, escaping,
+  missing-anchor, and non-Markdown-fragment angle destinations.
+- Added static parser/test contracts and aligned README, security, vision,
+  changelog, and canonical plan-index guidance.
+
+## Verification Results
+
+- `ruby scripts/test-markdown-link-contract.rb` passed 13 tests and 34
+  assertions across ordinary, percent-encoded, angle-wrapped, fenced, ATX, and
+  Setext behavior.
+- `make check` passed the complete documentation, 13-test/34-assertion Markdown
+  link, 7-test/57-assertion overview SVG, and documentation-only build gate from
+  both repository and external working directories.
+- Two hostile mutations restoring the whitespace-free-only parser or removing
+  the literal-space regression were rejected by the repository checker.
+- Ruby syntax and `git diff --check` passed; exact diff, secret,
+  generated-artifact, conflict, mode, binary, and upstream audits passed before
+  commit.

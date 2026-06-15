@@ -63,6 +63,30 @@ class MarkdownLinkContractTest < Minitest::Test
     end
   end
 
+  def test_validates_literal_spaces_in_angle_destinations
+    with_docs do |root, source, _target|
+      root.join('design notes.md').write("# Review Notes\n")
+      root.join('diagram file.svg').write('<svg/>')
+      source.write(<<~MARKDOWN)
+        [Review](<design notes.md#review-notes> "Design review")
+        [Missing](<missing notes.md>)
+        [Escape](<../outside notes.md>)
+        [Missing anchor](<design notes.md#missing>)
+        [Non-Markdown fragment](<diagram file.svg#root>)
+        [External](<https://example.com/design notes>)
+        [Protocol relative](<//example.com/design notes>)
+      MARKDOWN
+
+      failures = MarkdownLinkContract.validate(source, root)
+      assert_equal [
+        'references missing or unsafe local target "missing notes.md"',
+        'references missing or unsafe local target "../outside notes.md"',
+        'references missing Markdown anchor "missing" in "design notes.md"',
+        'references fragment "root" on non-Markdown target "diagram file.svg"'
+      ], failures
+    end
+  end
+
   def test_matches_documented_github_heading_normalization
     heading = "This'll be a _Helpful_ Section About the Greek Letter Θ!"
 
