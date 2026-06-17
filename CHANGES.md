@@ -2,6 +2,8 @@
 
 ## 2026-06-17
 
+- HTML comments are excluded from rendered link and heading validation without
+  hiding rendered Markdown around closed comments.
 - Ignored links inside matching fenced code blocks while preserving local link
   validation before and after each fence.
 - Ignored links inside matched inline code spans while preserving validation

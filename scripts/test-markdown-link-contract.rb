@@ -248,6 +248,91 @@ class MarkdownLinkContractTest < Minitest::Test
     end
   end
 
+  def test_ignores_links_and_headings_inside_html_comments
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        # Visible
+
+        <!-- [Missing](MISSING.md) -->
+        <!--
+        ## Hidden Heading
+        Hidden Setext Heading
+        ---------------------
+        ![Missing image](missing.png)
+        -->
+
+        [Guide](GUIDE.md)
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+      assert_equal ['visible'], MarkdownLinkContract.heading_anchors(source.read)
+    end
+  end
+
+  def test_preserves_rendered_structure_around_html_comments
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        # Before
+        <!-- hidden -->
+        ## After
+
+        Not a heading
+        <!-- preserves the rendered line boundary -->
+        -------------
+
+        [Guide](GUIDE.md) <!-- [Missing](MISSING.md) --> [Setup](GUIDE.md#setup--usage)
+        [Not a link]<!-- boundary -->(MISSING.md)
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+      assert_equal %w[before after], MarkdownLinkContract.heading_anchors(source.read)
+      assert_equal %w[GUIDE.md GUIDE.md#setup--usage],
+                   MarkdownLinkContract.links(source.read).map { |link| [link[:path], link[:fragment]].compact.join('#') }
+    end
+  end
+
+  def test_unclosed_html_comment_hides_remaining_structure
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        # Visible
+
+        <!-- [Missing](MISSING.md)
+        ## Hidden Heading
+
+        ```text
+        -->
+        ```
+
+        [Still hidden](STILL-MISSING.md)
+        ## Still Hidden Heading
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+      assert_equal ['visible'], MarkdownLinkContract.heading_anchors(source.read)
+    end
+  end
+
+  def test_comment_delimiters_inside_code_do_not_hide_rendered_markdown
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        `<!--` [Missing inline](MISSING-INLINE.md)
+
+        ```text
+        <!--
+        ```
+
+        [Missing after fence](MISSING-FENCE.md)
+        # Visible Heading
+      MARKDOWN
+
+      failures = MarkdownLinkContract.validate(source, root)
+      assert_equal 2, failures.length
+      assert failures.any? { |failure| failure.include?('MISSING-INLINE.md') }
+      assert failures.any? { |failure| failure.include?('MISSING-FENCE.md') }
+      assert_equal ['visible-heading'], MarkdownLinkContract.heading_anchors(source.read)
+    end
+  end
+
   def test_rejects_fragments_that_only_match_fenced_code
     with_docs do |root, source, target|
       target.write("```text\n# Not A Heading\n```\n# Real Heading\n")

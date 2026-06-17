@@ -61,6 +61,8 @@ It also ignores links inside matching fenced code blocks so inert examples do
 not create false repository path or fragment failures.
 Matched inline code spans are excluded without allowing unmatched backticks to
 hide rendered local links.
+HTML comments are excluded from rendered link and heading validation while
+rendered content around closed comments remains subject to the same checks.
 It also validates angle-wrapped destinations with literal spaces instead of
 silently omitting those repository-local paths and fragments.
 

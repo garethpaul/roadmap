@@ -44,6 +44,8 @@ Priority:
   repository-local links outside fences
 - Exclude matched inline code spans without hiding links after unmatched
   backticks
+- HTML comments are excluded from rendered link and heading validation while
+  surrounding rendered Markdown remains covered
 - Keep angle-wrapped destinations with literal spaces inside repository-local
   link containment and fragment validation
 - Avoid generated churn that obscures the empty state

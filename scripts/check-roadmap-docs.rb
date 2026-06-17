@@ -17,6 +17,7 @@ MAKE_ROOT_PLAN = DOCS_PLANS.join('2026-06-14-make-root-override-protection.md')
 FENCED_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-fenced-heading-anchor-integrity.md')
 SETEXT_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-setext-heading-anchor-validation.md')
 FENCED_LINK_PLAN = DOCS_PLANS.join('2026-06-17-fenced-link-exclusion.md')
+HTML_COMMENT_PLAN = DOCS_PLANS.join('2026-06-17-html-comment-exclusion.md')
 HOSTED_VALIDATION_WORKFLOW = ROOT.join('.github/workflows/check.yml')
 MAKEFILE = ROOT.join('Makefile')
 EXPECTED_HOSTED_VALIDATION_WORKFLOW = <<~YAML
@@ -192,6 +193,23 @@ else
   failures << "#{rel(FENCED_LINK_PLAN)} is missing"
 end
 
+if HTML_COMMENT_PLAN.file?
+  html_comment_plan = HTML_COMMENT_PLAN.read
+  [
+    'Status: Completed',
+    'repository and external-directory `make check` passed',
+    'Twenty-three tests and 62 assertions passed',
+    'hostile HTML-comment mutations were rejected',
+    'Exact diff'
+  ].each do |evidence|
+    unless html_comment_plan.include?(evidence)
+      failures << "#{rel(HTML_COMMENT_PLAN)} must record verification evidence #{evidence.inspect}"
+    end
+  end
+else
+  failures << "#{rel(HTML_COMMENT_PLAN)} is missing"
+end
+
 if HOSTED_VALIDATION_WORKFLOW.file?
   workflow = HOSTED_VALIDATION_WORKFLOW.read
   unless workflow == EXPECTED_HOSTED_VALIDATION_WORKFLOW
@@ -249,14 +267,24 @@ unless markdown_contract_source.include?('(?:<([^>\\n]*)>|([^)\\s]+))') &&
   failures << 'scripts/markdown-link-contract.rb must validate angle-wrapped destinations with literal spaces'
 end
 unless markdown_contract_source.include?('def fence_aware_lines(contents)') &&
-       markdown_contract_source.include?('fence_aware_lines(contents).each do |line|') &&
-       markdown_contract_source.include?('links.concat(scan_inline_links(segment.join("\\n")))') &&
+       markdown_contract_source.include?('def markdown_segments(contents)') &&
+       markdown_contract_source.include?('markdown_segments(contents).flat_map') &&
+       markdown_contract_source.include?("fence_aware_lines(contents).map { |line| line || '' }.join(\"\\n\")") &&
+       markdown_contract_source.include?('projection.empty? ? [] : [projection]') &&
        markdown_contract_source.include?('yield nil') &&
        markdown_contract_source.include?('def mask_inline_code_spans(contents)') &&
        markdown_contract_source.include?('matching_backtick_run(') &&
        markdown_contract_source.include?('search_from = opening_index + opening_length') &&
        markdown_contract_source.include?('backslashes.odd?')
   failures << 'scripts/markdown-link-contract.rb must exclude links inside code examples'
+end
+unless markdown_contract_source.include?('def mask_html_comments(contents)') &&
+       markdown_contract_source.include?("contents.index('<!--', cursor)") &&
+       markdown_contract_source.include?("contents.index('-->', comment_index + 4)") &&
+       markdown_contract_source.include?('mask_preserving_newlines') &&
+       markdown_contract_source.include?('next_matched_code_span') &&
+       markdown_contract_source.include?('markdown_segments(contents)')
+  failures << 'scripts/markdown-link-contract.rb must exclude HTML comments without joining rendered Markdown'
 end
 
 markdown_test_source = read('scripts/test-markdown-link-contract.rb')
@@ -274,6 +302,10 @@ markdown_test_source = read('scripts/test-markdown-link-contract.rb')
   test_ignores_links_inside_matched_inline_code_spans
   test_unmatched_and_different_length_backticks_do_not_hide_links
   test_escaped_opening_backtick_does_not_hide_rendered_link
+  test_ignores_links_and_headings_inside_html_comments
+  test_preserves_rendered_structure_around_html_comments
+  test_unclosed_html_comment_hides_remaining_structure
+  test_comment_delimiters_inside_code_do_not_hide_rendered_markdown
 ].each do |test_name|
   failures << "scripts/test-markdown-link-contract.rb must cover #{test_name}" unless markdown_test_source.include?(test_name)
 end
@@ -315,6 +347,16 @@ inline_code_guidance = {
   'CHANGES.md' => 'inline code spans'
 }
 inline_code_guidance.each do |path, phrase|
+  failures << "#{path} must document #{phrase}" unless read(path).include?(phrase)
+end
+
+html_comment_guidance = {
+  'README.md' => 'HTML comments are excluded from rendered link and heading validation',
+  'SECURITY.md' => 'HTML comments are excluded from rendered link and heading validation',
+  'VISION.md' => 'HTML comments are excluded from rendered link and heading validation',
+  'CHANGES.md' => 'HTML comments are excluded from rendered link and heading validation'
+}
+html_comment_guidance.each do |path, phrase|
   failures << "#{path} must document #{phrase}" unless read(path).include?(phrase)
 end
 

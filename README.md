@@ -91,6 +91,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   inert Markdown examples cannot be mistaken for repository dependencies.
 - Matched inline code spans are excluded for the same reason, while unmatched
   backticks leave rendered links subject to normal validation.
+- HTML comments are excluded from rendered link and heading validation while
+  links and headings around closed comments remain covered.
 - Local link validation covers angle-wrapped destinations with literal spaces
   through the same path, fragment, and repository-containment checks.
 
@@ -157,6 +159,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   angle-wrapped destinations with literal spaces in repository-local links.
 - See `docs/plans/2026-06-17-fenced-link-exclusion.md` for fence-aware and
   inline code example link exclusion.
+- See `docs/plans/2026-06-17-html-comment-exclusion.md` for comment-aware link
+  and heading validation.
 
 ## Contributing
 

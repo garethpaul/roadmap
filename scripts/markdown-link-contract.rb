@@ -42,21 +42,12 @@ module MarkdownLinkContract
   end
 
   def links(contents)
-    links = []
-    segment = []
-    fence_aware_lines(contents).each do |line|
-      if line.nil?
-        links.concat(scan_inline_links(segment.join("\n")))
-        segment = []
-      else
-        segment << line
-      end
-    end
-    links.concat(scan_inline_links(segment.join("\n")))
+    markdown_segments(contents).flat_map { |segment| scan_inline_links(segment) }
   end
 
   def scan_inline_links(contents)
-    mask_inline_code_spans(contents).scan(LINK_PATTERN).filter_map do |angle_target, bare_target|
+    visible_contents = mask_inline_code_spans(mask_html_comments(contents))
+    visible_contents.scan(LINK_PATTERN).filter_map do |angle_target, bare_target|
       target = angle_target.nil? ? bare_target : angle_target
       raw_target = angle_target.nil? ? bare_target : "<#{angle_target}>"
       next if target.start_with?('//') || target.match?(SCHEME_PATTERN)
@@ -73,6 +64,61 @@ module MarkdownLinkContract
         { raw: raw_target, error: error.message }
       end
     end
+  end
+
+  def mask_html_comments(contents)
+    masked = +''
+    cursor = 0
+
+    while cursor < contents.length
+      comment_index = contents.index('<!--', cursor)
+      code_span = next_matched_code_span(contents, cursor)
+
+      if code_span && (comment_index.nil? || code_span[0] < comment_index)
+        masked << contents[cursor...code_span[1]]
+        cursor = code_span[1]
+        next
+      end
+
+      unless comment_index
+        masked << contents[cursor..]
+        break
+      end
+
+      masked << contents[cursor...comment_index]
+      comment_end = contents.index('-->', comment_index + 4)
+      if comment_end
+        comment_end += 3
+        masked << mask_preserving_newlines(contents[comment_index...comment_end])
+        cursor = comment_end
+      else
+        masked << mask_preserving_newlines(contents[comment_index..])
+        cursor = contents.length
+      end
+    end
+
+    masked
+  end
+
+  def next_matched_code_span(contents, start_index)
+    search_from = start_index
+    while (opening = next_backtick_run(contents, search_from))
+      opening_index, opening_length = opening
+      if escaped_opening_backtick?(contents, opening_index)
+        search_from = opening_index + opening_length
+        next
+      end
+
+      closing_index = matching_backtick_run(contents, opening_index + opening_length, opening_length)
+      return [opening_index, closing_index + opening_length] if closing_index
+
+      search_from = opening_index + opening_length
+    end
+    nil
+  end
+
+  def mask_preserving_newlines(contents)
+    contents.gsub(/[^\n]/, ' ')
   end
 
   def mask_inline_code_spans(contents)
@@ -138,32 +184,33 @@ module MarkdownLinkContract
   def heading_anchors(contents)
     used = {}
     anchors = []
-    setext_candidate = nil
+    markdown_segments(contents).each do |segment|
+      setext_candidate = nil
+      mask_html_comments(segment).lines(chomp: true).each do |content|
+        setext_underline = content.match(/\A {0,3}(?:=+|-+)[ \t]*\z/)
+        if setext_underline && setext_candidate
+          append_heading_anchor(anchors, used, setext_candidate)
+          setext_candidate = nil
+          next
+        end
 
-    fence_aware_lines(contents).each do |content|
-      if content.nil?
-        setext_candidate = nil
-        next
+        match = content.match(/\A {0,3}\#{1,6}\s+(.+?)\s*\#*\s*\z/)
+        if match
+          append_heading_anchor(anchors, used, match[1])
+          setext_candidate = nil
+          next
+        end
+
+        setext_candidate = setext_heading_candidate(content)
       end
-
-      setext_underline = content.match(/\A {0,3}(?:=+|-+)[ \t]*\z/)
-      if setext_underline && setext_candidate
-        append_heading_anchor(anchors, used, setext_candidate)
-        setext_candidate = nil
-        next
-      end
-
-      match = content.match(/\A {0,3}\#{1,6}\s+(.+?)\s*\#*\s*\z/)
-      if match
-        append_heading_anchor(anchors, used, match[1])
-        setext_candidate = nil
-        next
-      end
-
-      setext_candidate = setext_heading_candidate(content)
     end
 
     anchors
+  end
+
+  def markdown_segments(contents)
+    projection = fence_aware_lines(contents).map { |line| line || '' }.join("\n")
+    projection.empty? ? [] : [projection]
   end
 
   def fence_aware_lines(contents)
@@ -179,6 +226,7 @@ module MarkdownLinkContract
           fence_marker = nil
           fence_length = nil
         end
+        yield nil
         next
       end
 
