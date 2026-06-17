@@ -42,7 +42,21 @@ module MarkdownLinkContract
   end
 
   def links(contents)
-    contents.scan(LINK_PATTERN).filter_map do |angle_target, bare_target|
+    links = []
+    segment = []
+    fence_aware_lines(contents).each do |line|
+      if line.nil?
+        links.concat(scan_inline_links(segment.join("\n")))
+        segment = []
+      else
+        segment << line
+      end
+    end
+    links.concat(scan_inline_links(segment.join("\n")))
+  end
+
+  def scan_inline_links(contents)
+    mask_inline_code_spans(contents).scan(LINK_PATTERN).filter_map do |angle_target, bare_target|
       target = angle_target.nil? ? bare_target : angle_target
       raw_target = angle_target.nil? ? bare_target : "<#{angle_target}>"
       next if target.start_with?('//') || target.match?(SCHEME_PATTERN)
@@ -61,30 +75,73 @@ module MarkdownLinkContract
     end
   end
 
-  def heading_anchors(contents)
-    used = {}
-    anchors = []
-    fence_marker = nil
-    fence_length = nil
-    setext_candidate = nil
+  def mask_inline_code_spans(contents)
+    masked = +''
+    cursor = 0
+    search_from = 0
 
-    contents.lines.each do |line|
-      content = line.chomp
-      if fence_marker
-        closing_fence = /\A {0,3}#{Regexp.escape(fence_marker)}{#{fence_length},}[ \t]*\z/
-        if content.match?(closing_fence)
-          fence_marker = nil
-          fence_length = nil
-        end
-        setext_candidate = nil
+    while (opening = next_backtick_run(contents, search_from))
+      opening_index, opening_length = opening
+      if escaped_opening_backtick?(contents, opening_index)
+        search_from = opening_index + opening_length
         next
       end
 
-      opening_fence = content.match(/\A {0,3}(`{3,}|~{3,})(.*)\z/)
-      if opening_fence &&
-         (opening_fence[1].start_with?('~') || !opening_fence[2].include?('`'))
-        fence_marker = opening_fence[1][0]
-        fence_length = opening_fence[1].length
+      closing_index = matching_backtick_run(contents, opening_index + opening_length, opening_length)
+      unless closing_index
+        search_from = opening_index + opening_length
+        next
+      end
+
+      masked << contents[cursor...opening_index] << "\n"
+      cursor = closing_index + opening_length
+      search_from = cursor
+    end
+
+    masked << contents[cursor..]
+  end
+
+  def next_backtick_run(contents, start_index)
+    index = contents.index('`', start_index)
+    return nil unless index
+
+    [index, backtick_run_length(contents, index)]
+  end
+
+  def matching_backtick_run(contents, start_index, expected_length)
+    search_from = start_index
+    while (run = next_backtick_run(contents, search_from))
+      index, length = run
+      return index if length == expected_length
+
+      search_from = index + length
+    end
+    nil
+  end
+
+  def backtick_run_length(contents, index)
+    length = 0
+    length += 1 while contents[index + length] == '`'
+    length
+  end
+
+  def escaped_opening_backtick?(contents, index)
+    backslashes = 0
+    cursor = index - 1
+    while cursor >= 0 && contents[cursor] == '\\'
+      backslashes += 1
+      cursor -= 1
+    end
+    backslashes.odd?
+  end
+
+  def heading_anchors(contents)
+    used = {}
+    anchors = []
+    setext_candidate = nil
+
+    fence_aware_lines(contents).each do |content|
+      if content.nil?
         setext_candidate = nil
         next
       end
@@ -107,6 +164,35 @@ module MarkdownLinkContract
     end
 
     anchors
+  end
+
+  def fence_aware_lines(contents)
+    return enum_for(__method__, contents) unless block_given?
+
+    fence_marker = nil
+    fence_length = nil
+    contents.lines.each do |line|
+      content = line.chomp
+      if fence_marker
+        closing_fence = /\A {0,3}#{Regexp.escape(fence_marker)}{#{fence_length},}[ \t]*\z/
+        if content.match?(closing_fence)
+          fence_marker = nil
+          fence_length = nil
+        end
+        next
+      end
+
+      opening_fence = content.match(/\A {0,3}(`{3,}|~{3,})(.*)\z/)
+      if opening_fence &&
+         (opening_fence[1].start_with?('~') || !opening_fence[2].include?('`'))
+        fence_marker = opening_fence[1][0]
+        fence_length = opening_fence[1].length
+        yield nil
+        next
+      end
+
+      yield content
+    end
   end
 
   def append_heading_anchor(anchors, used, heading)

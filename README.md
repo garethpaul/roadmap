@@ -87,6 +87,10 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   files and malformed percent escapes are rejected.
 - Anchor validation covers ATX and simple Setext heading anchors while ignoring
   heading-like content inside matching fenced code blocks.
+- Local validation also ignores links inside matching fenced code blocks, so
+  inert Markdown examples cannot be mistaken for repository dependencies.
+- Matched inline code spans are excluded for the same reason, while unmatched
+  backticks leave rendered links subject to normal validation.
 - Local link validation covers angle-wrapped destinations with literal spaces
   through the same path, fragment, and repository-containment checks.
 
@@ -151,6 +155,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   simple Setext heading anchors in repository-local fragment validation.
 - See `docs/plans/2026-06-15-markdown-angle-link-destinations.md` for
   angle-wrapped destinations with literal spaces in repository-local links.
+- See `docs/plans/2026-06-17-fenced-link-exclusion.md` for fence-aware and
+  inline code example link exclusion.
 
 ## Contributing
 

@@ -57,6 +57,10 @@ Local Markdown fragments must resolve to headings in Markdown targets;
 malformed escapes or fragments attached to non-Markdown files are rejected.
 The dependency-free validator covers ATX and simple Setext heading anchors and
 ignores heading-like content inside matching fenced code blocks.
+It also ignores links inside matching fenced code blocks so inert examples do
+not create false repository path or fragment failures.
+Matched inline code spans are excluded without allowing unmatched backticks to
+hide rendered local links.
 It also validates angle-wrapped destinations with literal spaces instead of
 silently omitting those repository-local paths and fragments.
 

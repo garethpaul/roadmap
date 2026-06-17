@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-06-17
+
+- Ignored links inside matching fenced code blocks while preserving local link
+  validation before and after each fence.
+- Ignored links inside matched inline code spans while preserving validation
+  when backtick delimiters are unmatched or use different lengths.
+
 ## 2026-06-15
 
 - Added repository-local validation for angle-wrapped destinations with literal spaces,

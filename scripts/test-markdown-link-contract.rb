@@ -154,6 +154,100 @@ class MarkdownLinkContractTest < Minitest::Test
                  MarkdownLinkContract.heading_anchors(markdown)
   end
 
+  def test_ignores_inline_links_and_images_inside_matching_fences
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Guide](GUIDE.md)
+
+        ```markdown
+        [Missing example](MISSING.md)
+        ![Missing image](missing.svg)
+        ```
+
+        ~~~ text
+        [Escaping example](../outside.md)
+        ~~~
+
+        [Visible missing](VISIBLE-MISSING.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "VISIBLE-MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_requires_matching_marker_and_closing_length_before_links_resume
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        ````markdown
+        [Hidden](MISSING-ONE.md)
+        ```
+        [Still hidden after short close](MISSING-TWO.md)
+        ~~~~
+        [Still hidden after wrong marker](MISSING-THREE.md)
+        `````
+        [Visible](VISIBLE-MISSING.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "VISIBLE-MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_fenced_link_boundaries_do_not_join_surrounding_markdown
+    markdown = <<~MARKDOWN
+      Candidate
+      ```text
+      [Example](MISSING.md)
+      ```
+      ---
+    MARKDOWN
+
+    assert_empty MarkdownLinkContract.links(markdown)
+    assert_empty MarkdownLinkContract.heading_anchors(markdown)
+  end
+
+  def test_ignores_links_inside_matched_inline_code_spans
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        `[Inline example](MISSING-ONE.md)`
+        ``[Example with `backtick`](MISSING-TWO.md)``
+        [Guide](GUIDE.md)
+        [Visible missing](VISIBLE-MISSING.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "VISIBLE-MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_unmatched_and_different_length_backticks_do_not_hide_links
+    with_docs do |root, source, _target|
+      source.write("`[Unmatched](MISSING-ONE.md)\n")
+      assert_equal ['references missing or unsafe local target "MISSING-ONE.md"'],
+                   MarkdownLinkContract.validate(source, root)
+
+      source.write("``[Wrong closer](MISSING-TWO.md)`\n")
+      assert_equal ['references missing or unsafe local target "MISSING-TWO.md"'],
+                   MarkdownLinkContract.validate(source, root)
+
+      source.write("` unmatched\n``[Hidden later span](MISSING-THREE.md)``\n")
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_escaped_opening_backtick_does_not_hide_rendered_link
+    with_docs do |root, source, _target|
+      source.write("\\`[Visible](MISSING.md)`\n")
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+
+      source.write("\\\\`[Hidden](MISSING.md)`\n")
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
   def test_rejects_fragments_that_only_match_fenced_code
     with_docs do |root, source, target|
       target.write("```text\n# Not A Heading\n```\n# Real Heading\n")

@@ -16,6 +16,7 @@ MARKDOWN_ANCHOR_PLAN = DOCS_PLANS.join('2026-06-13-markdown-anchor-integrity.md'
 MAKE_ROOT_PLAN = DOCS_PLANS.join('2026-06-14-make-root-override-protection.md')
 FENCED_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-fenced-heading-anchor-integrity.md')
 SETEXT_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-setext-heading-anchor-validation.md')
+FENCED_LINK_PLAN = DOCS_PLANS.join('2026-06-17-fenced-link-exclusion.md')
 HOSTED_VALIDATION_WORKFLOW = ROOT.join('.github/workflows/check.yml')
 MAKEFILE = ROOT.join('Makefile')
 EXPECTED_HOSTED_VALIDATION_WORKFLOW = <<~YAML
@@ -174,6 +175,23 @@ else
   failures << "#{rel(SETEXT_HEADING_PLAN)} is missing"
 end
 
+if FENCED_LINK_PLAN.file?
+  fenced_link_plan = FENCED_LINK_PLAN.read
+  [
+    'Status: Completed',
+    'repository-root and external-directory `make check` passed',
+    'Nineteen tests and 48 assertions passed',
+    'hostile fenced-link mutations were rejected',
+    'Exact diff'
+  ].each do |evidence|
+    unless fenced_link_plan.include?(evidence)
+      failures << "#{rel(FENCED_LINK_PLAN)} must record verification evidence #{evidence.inspect}"
+    end
+  end
+else
+  failures << "#{rel(FENCED_LINK_PLAN)} is missing"
+end
+
 if HOSTED_VALIDATION_WORKFLOW.file?
   workflow = HOSTED_VALIDATION_WORKFLOW.read
   unless workflow == EXPECTED_HOSTED_VALIDATION_WORKFLOW
@@ -230,6 +248,16 @@ unless markdown_contract_source.include?('(?:<([^>\\n]*)>|([^)\\s]+))') &&
        markdown_contract_source.include?('angle_target.nil? ? bare_target : angle_target')
   failures << 'scripts/markdown-link-contract.rb must validate angle-wrapped destinations with literal spaces'
 end
+unless markdown_contract_source.include?('def fence_aware_lines(contents)') &&
+       markdown_contract_source.include?('fence_aware_lines(contents).each do |line|') &&
+       markdown_contract_source.include?('links.concat(scan_inline_links(segment.join("\\n")))') &&
+       markdown_contract_source.include?('yield nil') &&
+       markdown_contract_source.include?('def mask_inline_code_spans(contents)') &&
+       markdown_contract_source.include?('matching_backtick_run(') &&
+       markdown_contract_source.include?('search_from = opening_index + opening_length') &&
+       markdown_contract_source.include?('backslashes.odd?')
+  failures << 'scripts/markdown-link-contract.rb must exclude links inside code examples'
+end
 
 markdown_test_source = read('scripts/test-markdown-link-contract.rb')
 %w[
@@ -240,6 +268,12 @@ markdown_test_source = read('scripts/test-markdown-link-contract.rb')
   test_accepts_setext_heading_anchors_and_mixed_duplicate_suffixes
   test_ignores_setext_lookalikes_inside_fences_and_after_blank_lines
   test_validates_literal_spaces_in_angle_destinations
+  test_ignores_inline_links_and_images_inside_matching_fences
+  test_requires_matching_marker_and_closing_length_before_links_resume
+  test_fenced_link_boundaries_do_not_join_surrounding_markdown
+  test_ignores_links_inside_matched_inline_code_spans
+  test_unmatched_and_different_length_backticks_do_not_hide_links
+  test_escaped_opening_backtick_does_not_hide_rendered_link
 ].each do |test_name|
   failures << "scripts/test-markdown-link-contract.rb must cover #{test_name}" unless markdown_test_source.include?(test_name)
 end
@@ -261,6 +295,26 @@ angle_destination_guidance = {
   'CHANGES.md' => 'angle-wrapped destinations with literal spaces'
 }
 angle_destination_guidance.each do |path, phrase|
+  failures << "#{path} must document #{phrase}" unless read(path).include?(phrase)
+end
+
+fenced_link_guidance = {
+  'README.md' => 'links inside matching fenced code blocks',
+  'SECURITY.md' => 'links inside matching fenced code blocks',
+  'VISION.md' => 'links inside matching fenced code blocks',
+  'CHANGES.md' => 'links inside matching fenced code blocks'
+}
+fenced_link_guidance.each do |path, phrase|
+  failures << "#{path} must document #{phrase}" unless read(path).include?(phrase)
+end
+
+inline_code_guidance = {
+  'README.md' => 'inline code spans',
+  'SECURITY.md' => 'inline code spans',
+  'VISION.md' => 'inline code spans',
+  'CHANGES.md' => 'inline code spans'
+}
+inline_code_guidance.each do |path, phrase|
   failures << "#{path} must document #{phrase}" unless read(path).include?(phrase)
 end
 
