@@ -402,6 +402,32 @@ class MarkdownLinkContractTest < Minitest::Test
     end
   end
 
+  def test_type7_html_blocks_allow_quoted_attribute_punctuation
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        <x-tag data-title="literal > marker" data-less='literal < marker' data-code="`tick`">
+        [Hidden](MISSING-HIDDEN.md)
+
+        [Visible](MISSING-VISIBLE.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING-VISIBLE.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_malformed_type7_html_attributes_do_not_hide_links
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        <x-tag data-title=bad"value>
+        [Visible](MISSING.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
   def test_non_one_ordered_html_blocks_do_not_interrupt_paragraphs
     with_docs do |root, source, _target|
       source.write(<<~MARKDOWN)
@@ -929,6 +955,23 @@ class MarkdownLinkContractTest < Minitest::Test
       assert_equal %w[before after], MarkdownLinkContract.heading_anchors(source.read)
       assert_equal %w[GUIDE.md GUIDE.md#setup--usage],
                    MarkdownLinkContract.links(source.read).map { |link| [link[:path], link[:fragment]].compact.join('#') }
+    end
+  end
+
+  def test_bang_closed_html_comments_resume_rendered_markdown
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        <!--
+        # Hidden
+        [Hidden](MISSING-HIDDEN.md)
+        --!>
+        # Visible
+        [Visible](MISSING-VISIBLE.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING-VISIBLE.md"'],
+                   MarkdownLinkContract.validate(source, root)
+      assert_equal ['visible'], MarkdownLinkContract.heading_anchors(source.read)
     end
   end
 

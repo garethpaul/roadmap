@@ -282,7 +282,8 @@ unless markdown_contract_source.include?('def fence_aware_lines(contents)') &&
 end
 unless markdown_contract_source.include?('def mask_html_comments(contents)') &&
        markdown_contract_source.include?("contents.index('<!--', cursor)") &&
-       markdown_contract_source.include?("contents.index('-->', comment_index + 4)") &&
+       markdown_contract_source.include?('def html_comment_end(contents, start_index)') &&
+       markdown_contract_source.include?("contents.index('--!>', start_index)") &&
        markdown_contract_source.include?('mask_preserving_newlines') &&
        markdown_contract_source.include?('next_matched_code_span') &&
        markdown_contract_source.include?('markdown_segments(contents)')
@@ -323,6 +324,7 @@ markdown_test_source = read('scripts/test-markdown-link-contract.rb')
   test_escaped_opening_backtick_does_not_hide_rendered_link
   test_ignores_links_and_headings_inside_html_comments
   test_preserves_rendered_structure_around_html_comments
+  test_bang_closed_html_comments_resume_rendered_markdown
   test_unclosed_html_comment_hides_remaining_structure
   test_comment_delimiters_inside_code_do_not_hide_rendered_markdown
   test_rejects_reference_style_local_links
@@ -346,6 +348,8 @@ markdown_test_source = read('scripts/test-markdown-link-contract.rb')
   test_ignores_raw_html_blocks_inside_block_containers
   test_type7_html_blocks_do_not_interrupt_paragraphs
   test_ignores_type7_html_blocks_at_block_start
+  test_type7_html_blocks_allow_quoted_attribute_punctuation
+  test_malformed_type7_html_attributes_do_not_hide_links
   test_non_one_ordered_html_blocks_do_not_interrupt_paragraphs
   test_validates_reference_definitions_with_multiline_titles
   test_unescapes_reference_label_punctuation
