@@ -1,9 +1,55 @@
 # Changes
 
+## 2026-06-19
+
+- Hardened repository-local Markdown validation for reference-style links,
+  balanced parentheses, exact path casing, decoded null bytes, symlinked path
+  components, CommonMark raw HTML blocks, and indented code boundaries.
+- Kept the Markdown contract runnable on Ruby 2.6 while preserving the hosted
+  Ruby 2.7 and Ruby 3.3 validation matrix.
+
+## 2026-06-17
+
+- HTML comments are excluded from rendered link and heading validation without
+  hiding rendered Markdown around closed comments.
+- Ignored links inside matching fenced code blocks while preserving local link
+  validation before and after each fence.
+- Ignored links inside matched inline code spans while preserving validation
+  when backtick delimiters are unmatched or use different lengths.
+
+## 2026-06-15
+
+- Added repository-local validation for angle-wrapped destinations with literal spaces,
+  including missing paths, escaped paths, and fragment checks.
+
+## 2026-06-14
+
+- Extended local fragment validation across ATX and simple Setext heading anchors
+  while preserving fenced-code exclusion and duplicate suffixes.
+
+## 2026-06-13
+
+- Added deterministic GitHub-style heading-anchor validation for same-file and
+  cross-file Markdown fragments, including duplicate heading suffixes.
+- Added structured overview SVG validation for XML integrity, accessible naming,
+  and rejection of scripts, foreign content, handlers, and linked resources.
+
+## 2026-06-12
+
+- Added fail-closed tracked file-mode and repository-local Markdown link
+  validation, rejecting symlinks, gitlinks, executable drift, missing targets,
+  and links that escape the checkout.
+
+- Required the exact issue-template schema and reviewed contact copy so extra
+  fields, reordered routes, or support-language drift fail validation.
+
 ## 2026-06-10
 
 - Added pinned, least-privilege GitHub Actions validation for the roadmap
   documentation contract.
+- Added explicit Ruby 2.7 and Ruby 3.3 coverage, disabled persisted checkout
+  credentials, and enforced the complete reviewed workflow contract.
+- Added local secret/editor exclusions and fail-closed tracked-metadata checks.
 - Made `make check` independent of the caller's current directory.
 - Added fail-closed checks for the hosted workflow and completed plan.
 - Added issue-template contact-link uniqueness checks so duplicate names or

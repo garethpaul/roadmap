@@ -14,6 +14,8 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `README.md` - project overview and local usage notes
 - `CHANGES.md` - maintenance history for documentation integrity checks
 - `Makefile` - local verification entry points
+- `.github/workflows/check.yml` - hosted Ruby documentation validation
+- `.gitignore` - local secret, editor, dependency, and coverage exclusions
 - `docs/plans` - completed maintenance plans for the current baseline
 - `plans` - historical implementation notes
 - `scripts` - documentation integrity validators
@@ -21,6 +23,9 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `SCOPE.md` - explicit placeholder scope and non-commitment guidance
 - `SECURITY.md` - security reporting and disclosure guidance
 - `VISION.md` - project direction and maintenance guardrails
+
+Tracked repository entries must remain ordinary Git blobs, and relative links
+in tracked Markdown must resolve to regular files inside this repository.
 
 Additional scan context:
 
@@ -54,11 +59,14 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 ## Testing and Verification
 
 - `make check` runs the documentation integrity checks for this placeholder repository.
-- GitHub Actions runs the same no-install contract on a fixed Ubuntu 24.04
-  runner with read-only repository permissions.
+- GitHub Actions runs the same no-install contract on Ruby 2.7 and Ruby 3.3
+  using a fixed Ubuntu 24.04 runner, pinned actions, read-only repository
+  permissions, and checkout credential persistence disabled.
 - The integrity checker also requires completed canonical plans under `docs/plans`.
 - The integrity checker keeps the overview SVG aligned with the placeholder and
-  non-commitment language.
+  non-commitment language. A structured XML contract also requires the
+  accessible SVG root and rejects scripts, foreign content, handlers, linked
+  resources, and CSS `url()` references.
 - The integrity checker keeps `VISION.md` aligned with the same no-commitment
   language as `README.md` and `SCOPE.md`.
 - The integrity checker keeps `SECURITY.md` explicit that security reports are
@@ -70,15 +78,34 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   expected policy until roadmap scope is defined.
 - The integrity checker requires the issue-template contact links to include
   only the repository security policy and `SCOPE.md`, with unique names and
-  URLs, until broader roadmap scope is defined.
+  URLs, until broader roadmap scope is defined. It also preserves the exact
+  issue-template schema and reviewed contact copy.
 - The integrity checker requires README maintenance notes to reference every
   canonical plan under `docs/plans`.
+- Repository-local Markdown fragments must resolve to GitHub-style heading
+  anchors in same-file or cross-file Markdown targets; fragments on non-Markdown
+  files and malformed percent escapes are rejected.
+- Anchor validation covers ATX and simple Setext heading anchors while ignoring
+  heading-like content inside matching fenced code blocks.
+- Local validation also ignores links inside matching fenced code blocks, so
+  inert Markdown examples cannot be mistaken for repository dependencies.
+- Matched inline code spans are excluded for the same reason, while unmatched
+  backticks leave rendered links subject to normal validation.
+- HTML comments are excluded from rendered link and heading validation while
+  links and headings around closed comments remain covered.
+- Local link validation covers angle-wrapped destinations with literal spaces
+  through the same path, fragment, and repository-containment checks.
+- Local link validation also covers reference-style links, balanced
+  parentheses, exact path casing, decoded null bytes, symlinked path
+  components, CommonMark raw HTML blocks, and indented code boundaries.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
 ## Configuration and Secrets
 
 - No required secret or credential file was identified in the repository scan. If you add integrations later, keep secrets out of git.
+- The integrity checker rejects tracked `.env` files and common editor metadata;
+  a non-secret `.env.example` template remains allowed.
 
 ## Security and Privacy Notes
 
@@ -115,6 +142,28 @@ When the required SDK or runtime is unavailable, use static checks and source re
   placeholder contact-link allowlist.
 - See `docs/plans/2026-06-10-hosted-document-validation.md` for the hosted
   documentation validation baseline.
+- See `docs/plans/2026-06-12-credential-free-document-validation.md` for the
+  exact credential-free Ruby validation contract.
+- See `docs/plans/2026-06-12-issue-template-schema-contract.md` for the exact
+  issue-template schema and reviewed contact copy.
+- See `docs/plans/2026-06-12-document-link-integrity.md` for tracked file-mode
+  and repository-local Markdown link validation.
+- See `docs/plans/2026-06-13-inert-overview-svg.md` for the well-formed,
+  accessible, inert overview asset contract.
+- See `docs/plans/2026-06-13-markdown-anchor-integrity.md` for same-file and
+  cross-file heading-anchor validation.
+- See `docs/plans/2026-06-14-make-root-override-protection.md` for the
+  caller-resistant, location-independent Make validation root.
+- See `docs/plans/2026-06-14-fenced-heading-anchor-integrity.md` for
+  fence-aware Markdown heading-anchor validation.
+- See `docs/plans/2026-06-14-setext-heading-anchor-validation.md` for ATX and
+  simple Setext heading anchors in repository-local fragment validation.
+- See `docs/plans/2026-06-15-markdown-angle-link-destinations.md` for
+  angle-wrapped destinations with literal spaces in repository-local links.
+- See `docs/plans/2026-06-17-fenced-link-exclusion.md` for fence-aware and
+  inline code example link exclusion.
+- See `docs/plans/2026-06-17-html-comment-exclusion.md` for comment-aware link
+  and heading validation.
 
 ## Contributing
 

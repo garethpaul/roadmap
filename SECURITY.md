@@ -38,13 +38,40 @@ For web services, APIs, sockets, or scraping workflows, prioritize reports invol
 
 ## Dependency and Supply Chain Security
 
-Hosted validation installs no project dependencies, grants only read access to
-repository contents, and pins third-party actions by commit.
+GitHub Actions validation installs no project dependencies, grants only read
+access to repository contents, pins third-party actions by commit, and disables
+persisted checkout credentials. The local baseline fails closed when it cannot
+inspect tracked secret and editor metadata paths.
 
 Until roadmap scope is defined, issue-template contact routes are limited to
-this security policy and `SCOPE.md`.
+this security policy and `SCOPE.md`; the exact issue-template schema and
+reviewed contact copy remain part of the validated boundary.
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
+
+Hosted validation rejects symlinks, gitlinks, executable-mode drift, unresolved
+relative Markdown links, and local links that escape the repository. This keeps
+reviewed documentation content tied to ordinary tracked blobs.
+
+Local Markdown fragments must resolve to headings in Markdown targets;
+malformed escapes or fragments attached to non-Markdown files are rejected.
+The dependency-free validator covers ATX and simple Setext heading anchors and
+ignores heading-like content inside matching fenced code blocks.
+It also ignores links inside matching fenced code blocks so inert examples do
+not create false repository path or fragment failures.
+Matched inline code spans are excluded without allowing unmatched backticks to
+hide rendered local links.
+HTML comments are excluded from rendered link and heading validation while
+rendered content around closed comments remains subject to the same checks.
+It also validates angle-wrapped destinations with literal spaces instead of
+silently omitting those repository-local paths and fragments.
+Local link validation also covers reference-style links, balanced parentheses,
+exact path casing, decoded null bytes, symlinked path components, CommonMark
+raw HTML blocks, and indented code boundaries.
+
+The README overview SVG must remain well-formed, self-contained, and inert.
+Scripts, foreign HTML, event handlers, linked resources, and CSS `url()`
+references are rejected by the documentation gate.
 
 ## Safe Research Guidelines
 

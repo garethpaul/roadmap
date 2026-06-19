@@ -25,12 +25,32 @@ Priority:
 - Keep scope prerequisites explicit about roadmap type, owner, audience,
   timeframe, and commitment level
 - Keep the overview image aligned with the placeholder status
+- Keep the overview image well-formed, accessible, self-contained, and inert
 - Keep issue-template policy visible from README until scope is defined
 - Keep issue-template contact links scoped to the security policy and SCOPE.md,
-  with unique names and URLs and no additional routes before scope is defined
+  with unique names and URLs, the exact issue-template schema and reviewed
+  contact copy, and no additional routes before scope is defined
 - Keep README maintenance notes linked to every canonical plan
 - Keep SECURITY explicit that reports do not create roadmap commitments
-- Keep the dependency-free documentation contract enforced in hosted validation
+- Keep the dependency-free documentation contract enforced on Ruby 2.7 and
+  Ruby 3.3 in credential-free GitHub Actions validation
+- Keep local secrets and editor metadata out of the placeholder repository
+- Keep tracked documentation as ordinary Git blobs with repository-local links
+  resolving to regular checked-in files
+- Keep same-file and cross-file Markdown fragments aligned with actual headings
+- Keep ATX and simple Setext heading anchors covered without treating fenced
+  code as document structure
+- Ignore links inside matching fenced code blocks while validating rendered
+  repository-local links outside fences
+- Exclude matched inline code spans without hiding links after unmatched
+  backticks
+- HTML comments are excluded from rendered link and heading validation while
+  surrounding rendered Markdown remains covered
+- Keep angle-wrapped destinations with literal spaces inside repository-local
+  link containment and fragment validation
+- Keep reference-style links, balanced parentheses, exact path casing, decoded
+  null bytes, symlinked path components, CommonMark raw HTML blocks, and
+  indented code boundaries covered by local link validation
 - Avoid generated churn that obscures the empty state
 
 Next priorities:
