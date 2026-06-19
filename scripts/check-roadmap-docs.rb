@@ -262,8 +262,9 @@ unless markdown_contract_source.include?('setext_candidate = nil') &&
        markdown_contract_source.include?('def setext_heading_candidate(content)')
   failures << 'scripts/markdown-link-contract.rb must validate simple Setext heading anchors'
 end
-unless markdown_contract_source.include?('(?:<([^>\\n]*)>|([^)\\s]+))') &&
-       markdown_contract_source.include?('angle_target.nil? ? bare_target : angle_target')
+unless markdown_contract_source.include?('def parse_angle_destination(contents, index)') &&
+       markdown_contract_source.include?('def parse_bare_destination(contents, index, stop_at_space:, allow_end: false)') &&
+       markdown_contract_source.include?('def parse_parenthesized_destination(contents, index)')
   failures << 'scripts/markdown-link-contract.rb must validate angle-wrapped destinations with literal spaces'
 end
 unless markdown_contract_source.include?('def fence_aware_lines(contents)') &&
@@ -275,7 +276,8 @@ unless markdown_contract_source.include?('def fence_aware_lines(contents)') &&
        markdown_contract_source.include?('def mask_inline_code_spans(contents)') &&
        markdown_contract_source.include?('matching_backtick_run(') &&
        markdown_contract_source.include?('search_from = opening_index + opening_length') &&
-       markdown_contract_source.include?('backslashes.odd?')
+       markdown_contract_source.include?('backslashes.odd?') &&
+       markdown_contract_source.include?('block_content = raw_html_line_content(content, block_start)')
   failures << 'scripts/markdown-link-contract.rb must exclude links inside code examples'
 end
 unless markdown_contract_source.include?('def mask_html_comments(contents)') &&
@@ -285,6 +287,23 @@ unless markdown_contract_source.include?('def mask_html_comments(contents)') &&
        markdown_contract_source.include?('next_matched_code_span') &&
        markdown_contract_source.include?('markdown_segments(contents)')
   failures << 'scripts/markdown-link-contract.rb must exclude HTML comments without joining rendered Markdown'
+end
+unless markdown_contract_source.include?('COMMONMARK_HTML_BLOCK_TAGS') &&
+       markdown_contract_source.include?('def raw_html_block_start(content, block_start)') &&
+       markdown_contract_source.include?('def complete_open_or_closing_tag_line?(line)') &&
+       markdown_contract_source.include?('def raw_html_line_content(content, block_start = true)') &&
+       markdown_contract_source.include?('def container_marker_can_interrupt_paragraph?(marker, block_start)') &&
+       markdown_contract_source.include?('block_start && complete_open_or_closing_tag_line?') &&
+       markdown_contract_source.include?('raw_html_until_blank')
+  failures << 'scripts/markdown-link-contract.rb must exclude CommonMark raw HTML blocks'
+end
+unless markdown_contract_source.include?('current_block_start = block_start') &&
+       markdown_contract_source.include?('def indented_code_line?(content)') &&
+       markdown_contract_source.include?('indented_code = false')
+  failures << 'scripts/markdown-link-contract.rb must allow reference definitions after indented code blocks'
+end
+unless markdown_contract_source.include?('target = CGI.unescapeHTML(target)')
+  failures << 'scripts/markdown-link-contract.rb must decode destination character references'
 end
 
 markdown_test_source = read('scripts/test-markdown-link-contract.rb')
@@ -306,6 +325,57 @@ markdown_test_source = read('scripts/test-markdown-link-contract.rb')
   test_preserves_rendered_structure_around_html_comments
   test_unclosed_html_comment_hides_remaining_structure
   test_comment_delimiters_inside_code_do_not_hide_rendered_markdown
+  test_rejects_reference_style_local_links
+  test_reference_definitions_keep_the_first_label
+  test_ignores_reference_definitions_with_invalid_trailing_text
+  test_validates_multiline_reference_destinations
+  test_validates_unindented_multiline_reference_destinations
+  test_validates_reference_definitions_after_indented_code_blocks
+  test_ignores_reference_definitions_after_indented_paragraph_continuations
+  test_ignores_reference_definitions_inside_paragraphs
+  test_validates_reference_definitions_after_completed_blocks
+  test_ignores_reference_definitions_after_inline_code_paragraphs
+  test_ignores_invalid_reference_labels
+  test_validates_reference_definitions_inside_block_containers
+  test_non_one_ordered_reference_definition_does_not_interrupt_paragraphs
+  test_one_ordered_reference_definition_can_interrupt_paragraphs
+  test_validates_reference_definitions_in_new_container_blocks
+  test_ignores_links_and_reference_definitions_inside_raw_html_blocks
+  test_ignores_reference_link_uses_inside_commonmark_raw_html_blocks
+  test_ignores_reference_definitions_inside_commonmark_raw_html_blocks
+  test_ignores_raw_html_blocks_inside_block_containers
+  test_type7_html_blocks_do_not_interrupt_paragraphs
+  test_ignores_type7_html_blocks_at_block_start
+  test_non_one_ordered_html_blocks_do_not_interrupt_paragraphs
+  test_validates_reference_definitions_with_multiline_titles
+  test_unescapes_reference_label_punctuation
+  test_decodes_reference_label_entities
+  test_decodes_destination_entities
+  test_parses_bare_destinations_with_balanced_parentheses
+  test_unescapes_backslash_escaped_destination_characters
+  test_preserves_backslashes_before_non_escapable_destination_characters
+  test_ignores_bare_destinations_with_unescaped_spaces
+  test_ignores_inline_links_inside_indented_code_blocks
+  test_ignores_headings_inside_indented_code_blocks
+  test_ignores_indented_code_inside_block_containers
+  test_ignores_fenced_code_inside_block_containers
+  test_non_one_ordered_fences_do_not_interrupt_paragraphs
+  test_validates_inline_links_inside_indented_paragraph_continuations
+  test_validates_inline_link_titles_after_line_breaks
+  test_validates_inline_destinations_after_line_breaks
+  test_validates_inline_link_titles_with_line_endings
+  test_ignores_angle_destinations_without_title_spacing
+  test_ignores_angle_destinations_with_unescaped_less_than
+  test_ignores_inline_link_titles_with_blank_lines
+  test_validates_nested_images_inside_link_text
+  test_validates_rendered_links_inside_literal_brackets
+  test_ignores_nested_links_inside_link_text
+  test_ignores_gfm_footnotes_as_reference_links
+  test_masks_reference_title_continuation_lines
+  test_rejects_decoded_null_bytes_without_crashing
+  test_rejects_invalid_percent_decoded_encoding_without_crashing
+  test_rejects_wrong_case_local_paths
+  test_rejects_targets_reached_through_symlinked_directories
 ].each do |test_name|
   failures << "scripts/test-markdown-link-contract.rb must cover #{test_name}" unless markdown_test_source.include?(test_name)
 end
@@ -358,6 +428,16 @@ html_comment_guidance = {
 }
 html_comment_guidance.each do |path, phrase|
   failures << "#{path} must document #{phrase}" unless read(path).include?(phrase)
+end
+
+hardened_link_guidance = {
+  'README.md' => 'reference-style links, balanced parentheses, exact path casing, decoded null bytes, symlinked path components, CommonMark raw HTML blocks, and indented code boundaries',
+  'SECURITY.md' => 'reference-style links, balanced parentheses, exact path casing, decoded null bytes, symlinked path components, CommonMark raw HTML blocks, and indented code boundaries',
+  'VISION.md' => 'reference-style links, balanced parentheses, exact path casing, decoded null bytes, symlinked path components, CommonMark raw HTML blocks, and indented code boundaries',
+  'CHANGES.md' => 'reference-style links, balanced parentheses, exact path casing, decoded null bytes, symlinked path components, CommonMark raw HTML blocks, and indented code boundaries'
+}
+hardened_link_guidance.each do |path, phrase|
+  failures << "#{path} must document #{phrase}" unless read(path).gsub(/\s+/, ' ').include?(phrase)
 end
 
 if ROOT.join('AGENTS.md').file?

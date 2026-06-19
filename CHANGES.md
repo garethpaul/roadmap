@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-06-19
+
+- Hardened repository-local Markdown validation for reference-style links,
+  balanced parentheses, exact path casing, decoded null bytes, symlinked path
+  components, CommonMark raw HTML blocks, and indented code boundaries.
+- Kept the Markdown contract runnable on Ruby 2.6 while preserving the hosted
+  Ruby 2.7 and Ruby 3.3 validation matrix.
+
 ## 2026-06-17
 
 - HTML comments are excluded from rendered link and heading validation without

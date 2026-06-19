@@ -95,6 +95,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   links and headings around closed comments remain covered.
 - Local link validation covers angle-wrapped destinations with literal spaces
   through the same path, fragment, and repository-containment checks.
+- Local link validation also covers reference-style links, balanced
+  parentheses, exact path casing, decoded null bytes, symlinked path
+  components, CommonMark raw HTML blocks, and indented code boundaries.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 

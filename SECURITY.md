@@ -65,6 +65,9 @@ HTML comments are excluded from rendered link and heading validation while
 rendered content around closed comments remains subject to the same checks.
 It also validates angle-wrapped destinations with literal spaces instead of
 silently omitting those repository-local paths and fragments.
+Local link validation also covers reference-style links, balanced parentheses,
+exact path casing, decoded null bytes, symlinked path components, CommonMark
+raw HTML blocks, and indented code boundaries.
 
 The README overview SVG must remain well-formed, self-contained, and inert.
 Scripts, foreign HTML, event handlers, linked resources, and CSS `url()`

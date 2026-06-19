@@ -87,6 +87,647 @@ class MarkdownLinkContractTest < Minitest::Test
     end
   end
 
+  def test_rejects_reference_style_local_links
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Guide][mixed case]
+        [Collapsed Reference][]
+        [Shortcut Reference]
+        [External][external]
+
+        [Mixed Case]: GUIDE.md#setup--usage
+        [collapsed reference]: MISSING-COLLAPSED.md
+        [shortcut reference]: <missing shortcut.md>
+        [external]: https://example.com/missing
+      MARKDOWN
+
+      assert_equal [
+        'references missing or unsafe local target "MISSING-COLLAPSED.md"',
+        'references missing or unsafe local target "missing shortcut.md"'
+      ], MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_reference_definitions_keep_the_first_label
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [External first][duplicate]
+
+        [duplicate]: https://example.com/guide
+        [duplicate]: MISSING.md
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_reference_definitions_with_invalid_trailing_text
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Shortcut Reference]
+
+        [shortcut reference]: MISSING.md trailing text
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_multiline_reference_destinations
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Shortcut Reference]
+
+        [shortcut reference]:
+          MISSING.md
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_unindented_multiline_reference_destinations
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Shortcut Reference]
+
+        [shortcut reference]:
+        MISSING.md
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_reference_definitions_after_indented_code_blocks
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+            code
+        [target]: MISSING.md
+
+        [Doc][target]
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_reference_definitions_after_indented_paragraph_continuations
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph
+            [target]: MISSING.md
+
+        [Doc][target]
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_reference_definitions_inside_paragraphs
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph text
+        [shortcut reference]: MISSING.md
+
+        [Shortcut Reference]
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_reference_definitions_after_completed_blocks
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        # Heading
+        [heading ref]: MISSING-HEADING.md
+
+        ---
+        [rule ref]: MISSING-RULE.md
+
+        [Heading Ref]
+        [Rule Ref]
+      MARKDOWN
+
+      assert_equal [
+        'references missing or unsafe local target "MISSING-HEADING.md"',
+        'references missing or unsafe local target "MISSING-RULE.md"'
+      ], MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_reference_definitions_after_inline_code_paragraphs
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph `code`
+        [shortcut reference]: MISSING.md
+
+        [Shortcut Reference]
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_invalid_reference_labels
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [foo [bar]]: MISSING-NESTED.md
+        [ ]: MISSING-BLANK.md
+
+        [foo [bar]]
+        [ ]
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_reference_definitions_inside_block_containers
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Block quote][quoted]
+        [List item][listed]
+
+        > [quoted]: MISSING-BLOCK.md
+        - [listed]: MISSING-LIST.md
+      MARKDOWN
+
+      assert_equal [
+        'references missing or unsafe local target "MISSING-BLOCK.md"',
+        'references missing or unsafe local target "MISSING-LIST.md"'
+      ], MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_non_one_ordered_reference_definition_does_not_interrupt_paragraphs
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph
+        2. [target]: MISSING.md
+
+        [target]
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_one_ordered_reference_definition_can_interrupt_paragraphs
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph
+        1. [target]: MISSING.md
+
+        [target]
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_reference_definitions_in_new_container_blocks
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph text
+        > [quoted]: MISSING-BLOCK.md
+        Another paragraph
+        - [listed]: MISSING-LIST.md
+
+        [quoted]
+        [listed]
+      MARKDOWN
+
+      assert_equal [
+        'references missing or unsafe local target "MISSING-BLOCK.md"',
+        'references missing or unsafe local target "MISSING-LIST.md"'
+      ], MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_links_and_reference_definitions_inside_raw_html_blocks
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        <script>
+        [ref]: MISSING-REF.md
+        [Hidden](MISSING-HIDDEN.md)
+        </script>
+
+        [ref]
+        [Visible](MISSING-VISIBLE.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING-VISIBLE.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_reference_link_uses_inside_commonmark_raw_html_blocks
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        <div>
+        [Hidden][target]
+        </div>
+
+        [target]: MISSING.md
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_reference_definitions_inside_commonmark_raw_html_blocks
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Doc][target]
+
+        <div>
+        [target]: MISSING-DIV.md
+        </div>
+
+        <textarea>
+        [target]: MISSING-TEXTAREA.md
+        </textarea>
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_raw_html_blocks_inside_block_containers
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        > <div>
+        > [Hidden](MISSING-BLOCKQUOTE.md)
+        > </div>
+
+        - <textarea>
+          [target]: MISSING-LIST.md
+          </textarea>
+
+        [target]
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_type7_html_blocks_do_not_interrupt_paragraphs
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph
+        <x-tag>
+        [Missing](MISSING.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_type7_html_blocks_at_block_start
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        <x-tag>
+        [Hidden](MISSING.md)
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_non_one_ordered_html_blocks_do_not_interrupt_paragraphs
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph
+        2. <div>
+        [Missing](MISSING.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_reference_definitions_with_multiline_titles
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Multiline title][ref]
+
+        [ref]: MISSING.md "first
+        second"
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_unescapes_reference_label_punctuation
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Escaped][ref!]
+
+        [ref\\!]: MISSING.md
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_decodes_reference_label_entities
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Entity][ref&]
+
+        [ref&amp;]: MISSING.md
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_decodes_destination_entities
+    with_docs do |root, source, _target|
+      root.join('A&B.md').write("# Entity Path\n")
+      source.write(<<~MARKDOWN)
+        [Inline](A&amp;B.md)
+        [Reference][entity]
+        [entity]: <A&amp;B.md>
+        [Missing](missing&amp;file.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "missing&file.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_parses_bare_destinations_with_balanced_parentheses
+    with_docs do |root, source, _target|
+      root.join('file(1).md').write("# Title\n")
+      source.write("[File](file(1).md)\n[Missing](missing(1).md)\n")
+
+      assert_equal ['references missing or unsafe local target "missing(1).md"'],
+                   MarkdownLinkContract.validate(source, root)
+      assert_equal %w[file(1).md missing(1).md],
+                   MarkdownLinkContract.links(source.read).map { |link| link[:path] }
+    end
+  end
+
+  def test_unescapes_backslash_escaped_destination_characters
+    with_docs do |root, source, _target|
+      root.join('file(1).md').write("# File\n")
+      source.write("[File](file\\(1\\).md)\n")
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+      assert_equal ['file(1).md'],
+                   MarkdownLinkContract.links(source.read).map { |link| link[:path] }
+    end
+  end
+
+  def test_preserves_backslashes_before_non_escapable_destination_characters
+    with_docs do |root, source, _target|
+      root.join('foobar.md').write("# Wrong Target\n")
+      source.write("[Backslash](foo\\bar.md)\n")
+
+      assert_equal ['references missing or unsafe local target "foo\\\\bar.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_bare_destinations_with_unescaped_spaces
+    with_docs do |root, source, _target|
+      source.write("[Not a rendered link](missing(foo bar).md)\n")
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_inline_links_inside_indented_code_blocks
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+            [Hidden](MISSING.md)
+        [Visible](MISSING-VISIBLE.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING-VISIBLE.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_headings_inside_indented_code_blocks
+    assert_equal ['visible'],
+                 MarkdownLinkContract.heading_anchors("# Visible\n\n    # Hidden\n")
+  end
+
+  def test_ignores_indented_code_inside_block_containers
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        >     [Hidden](MISSING-BLOCKQUOTE.md)
+
+        - item
+
+              [Hidden](MISSING-LIST.md)
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_fenced_code_inside_block_containers
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        > ```
+        > [Hidden](MISSING-BLOCKQUOTE.md)
+        > ```
+
+        - ```
+          [Hidden](MISSING-LIST.md)
+          ```
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_non_one_ordered_fences_do_not_interrupt_paragraphs
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph
+        2. ```
+        [Missing](MISSING.md)
+        ```
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_inline_links_inside_indented_paragraph_continuations
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        Paragraph
+            [Missing](MISSING.md)
+      MARKDOWN
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_inline_link_titles_after_line_breaks
+    with_docs do |root, source, _target|
+      source.write("[Missing](MISSING.md\n \"Title\")\n")
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_inline_destinations_after_line_breaks
+    with_docs do |root, source, _target|
+      source.write("[Missing](\nMISSING.md)\n[Angle](\n<MISSING.svg>)\n")
+
+      assert_equal [
+        'references missing or unsafe local target "MISSING.md"',
+        'references missing or unsafe local target "MISSING.svg"'
+      ], MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_inline_link_titles_with_line_endings
+    with_docs do |root, source, _target|
+      source.write("[Missing](MISSING.md \"first\nsecond\")\n")
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_angle_destinations_without_title_spacing
+    with_docs do |root, source, _target|
+      source.write("[Not a rendered link](<MISSING.md>\"Title\")\n")
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_angle_destinations_with_unescaped_less_than
+    with_docs do |root, source, _target|
+      source.write("[Not a rendered link](<foo<bar.md>)\n")
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_inline_link_titles_with_blank_lines
+    with_docs do |root, source, _target|
+      source.write("[Not a rendered link](MISSING.md \"first\n\nsecond\")\n")
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_nested_images_inside_link_text
+    with_docs do |root, source, _target|
+      source.write("[![Diagram](MISSING.svg)](https://example.com/diagram)\n")
+
+      assert_equal ['references missing or unsafe local target "MISSING.svg"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_validates_rendered_links_inside_literal_brackets
+    with_docs do |root, source, _target|
+      source.write("[See [Missing](MISSING.md)]\n")
+
+      assert_equal ['references missing or unsafe local target "MISSING.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_nested_links_inside_link_text
+    with_docs do |root, source, _target|
+      source.write("[See [Missing](MISSING.md)](https://example.com)\n")
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_ignores_gfm_footnotes_as_reference_links
+    with_docs do |root, source, _target|
+      source.write("[^note]\n\n[^note]: MISSING.md\n")
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_masks_reference_title_continuation_lines
+    with_docs do |root, source, _target|
+      source.write(<<~MARKDOWN)
+        [Guide][guide]
+
+        [guide]: GUIDE.md
+          "[missing]"
+        [missing]: MISSING.md
+      MARKDOWN
+
+      assert_empty MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_rejects_decoded_null_bytes_without_crashing
+    with_docs do |root, source, _target|
+      source.write("[Null](GUIDE%00.md)\n")
+
+      failures = MarkdownLinkContract.validate(source, root)
+      refute_empty failures
+      assert failures.any? { |failure| failure.include?('null byte') }, failures.inspect
+    end
+  end
+
+  def test_rejects_invalid_percent_decoded_encoding_without_crashing
+    with_docs do |root, source, _target|
+      source.write("[Bad encoding](GUIDE%FF.md)\n")
+
+      failures = MarkdownLinkContract.validate(source, root)
+      refute_empty failures
+      assert failures.any? { |failure| failure.include?('invalid encoding') }, failures.inspect
+    end
+  end
+
+  def test_rejects_wrong_case_local_paths
+    with_docs do |root, source, _target|
+      root.join('Guide.md').write("# Guide\n")
+      source.write("[Wrong case](guide.md)\n")
+
+      assert_equal ['references missing or unsafe local target "guide.md"'],
+                   MarkdownLinkContract.validate(source, root)
+    end
+  end
+
+  def test_rejects_targets_reached_through_symlinked_directories
+    with_docs do |root, source, _target|
+      Dir.mktmpdir do |outside|
+        File.write(File.join(outside, 'outside.md'), "# Outside\n")
+        File.symlink(outside, root.join('linked'))
+        source.write("[Outside](linked/outside.md)\n")
+
+        assert_equal ['references missing or unsafe local target "linked/outside.md"'],
+                     MarkdownLinkContract.validate(source, root)
+      end
+    end
+  end
+
   def test_matches_documented_github_heading_normalization
     heading = "This'll be a _Helpful_ Section About the Greek Letter Θ!"
 

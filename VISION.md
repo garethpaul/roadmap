@@ -48,6 +48,9 @@ Priority:
   surrounding rendered Markdown remains covered
 - Keep angle-wrapped destinations with literal spaces inside repository-local
   link containment and fragment validation
+- Keep reference-style links, balanced parentheses, exact path casing, decoded
+  null bytes, symlinked path components, CommonMark raw HTML blocks, and
+  indented code boundaries covered by local link validation
 - Avoid generated churn that obscures the empty state
 
 Next priorities:
