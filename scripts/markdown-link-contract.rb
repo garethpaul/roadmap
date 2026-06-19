@@ -608,11 +608,11 @@ module MarkdownLinkContract
       end
 
       masked << contents[cursor...comment_index]
-      comment_end = contents.index('-->', comment_index + 4)
+      comment_end = html_comment_end(contents, comment_index + 4)
       if comment_end
-        comment_end += 3
-        masked << mask_preserving_newlines(contents[comment_index...comment_end])
-        cursor = comment_end
+        comment_end_index = comment_end[0] + comment_end[1]
+        masked << mask_preserving_newlines(contents[comment_index...comment_end_index])
+        cursor = comment_end_index
       else
         masked << mask_preserving_newlines(contents[comment_index..])
         cursor = contents.length
@@ -622,18 +622,27 @@ module MarkdownLinkContract
     masked
   end
 
+  def html_comment_end(contents, start_index)
+    normal_end = contents.index('-->', start_index)
+    bang_end = contents.index('--!>', start_index)
+    return nil unless normal_end || bang_end
+    return [normal_end, 3] if normal_end && (!bang_end || normal_end <= bang_end)
+
+    [bang_end, 4]
+  end
+
   def mask_raw_html_blocks(contents)
     masked = +''
-    raw_html_end_pattern = nil
+    raw_html_end = nil
     raw_html_until_blank = false
     block_start = true
 
     contents.lines.each do |line|
       content = line.chomp
       html_content = raw_html_line_content(content, block_start)
-      if raw_html_end_pattern
+      if raw_html_end
         masked << mask_preserving_newlines(line)
-        raw_html_end_pattern = nil if html_content.match?(raw_html_end_pattern)
+        raw_html_end = nil if raw_html_block_closed?(html_content, raw_html_end)
         block_start = true
         next
       end
@@ -653,9 +662,9 @@ module MarkdownLinkContract
       raw_html_block = raw_html_block_start(content, block_start)
       if raw_html_block
         masked << mask_preserving_newlines(line)
-        if raw_html_block[:end_pattern]
-          raw_html_end_pattern = raw_html_block[:end_pattern]
-          raw_html_end_pattern = nil if html_content.match?(raw_html_end_pattern)
+        if raw_html_block[:end_text] || raw_html_block[:end_texts] || raw_html_block[:end_tag]
+          raw_html_end = raw_html_block
+          raw_html_end = nil if raw_html_block_closed?(html_content, raw_html_end)
         else
           raw_html_until_blank = true
         end
@@ -678,15 +687,41 @@ module MarkdownLinkContract
 
     html = line[start..].to_s
     tag_opening = html.match(/\A<(?<tag>script|pre|style|textarea)(?:[ \t>\/]|\z)/i)
-    return { end_pattern: %r{</#{tag_opening[:tag]}\s*>}i } if tag_opening
-    return { end_pattern: /-->/ } if html.start_with?('<!--')
-    return { end_pattern: /\?>/ } if html.start_with?('<?')
-    return { end_pattern: />/ } if html.match?(/\A<![A-Z]/)
-    return { end_pattern: /\]\]>/ } if html.start_with?('<![CDATA[')
+    return { end_tag: tag_opening[:tag].downcase } if tag_opening
+    return { end_texts: ['-->', '--!>'] } if html.start_with?('<!--')
+    return { end_text: '?>' } if html.start_with?('<?')
+    return { end_text: '>' } if html.match?(/\A<![A-Z]/)
+    return { end_text: ']]>' } if html.start_with?('<![CDATA[')
     return { until_blank: true } if html.match?(COMMONMARK_HTML_BLOCK_PATTERN)
     return { until_blank: true } if block_start && complete_open_or_closing_tag_line?(html)
 
     nil
+  end
+
+  def raw_html_block_closed?(content, end_condition)
+    if end_condition[:end_tag]
+      raw_html_end_tag?(content, end_condition[:end_tag])
+    elsif end_condition[:end_texts]
+      end_condition[:end_texts].any? { |text| content.include?(text) }
+    elsif end_condition[:end_text]
+      content.include?(end_condition[:end_text])
+    else
+      false
+    end
+  end
+
+  def raw_html_end_tag?(content, tag)
+    lower_content = content.downcase
+    needle = "</#{tag}"
+    index = lower_content.index(needle)
+    while index
+      remainder = lower_content[(index + needle.length)..].to_s.lstrip
+      return true if remainder.start_with?('>')
+
+      index = lower_content.index(needle, index + 1)
+    end
+
+    false
   end
 
   def raw_html_line_content(content, block_start = true)
@@ -707,12 +742,94 @@ module MarkdownLinkContract
   end
 
   def complete_open_or_closing_tag_line?(line)
-    tag_name = '[A-Za-z][A-Za-z0-9-]*'
-    attribute = '[A-Za-z_:][A-Za-z0-9_.:-]*(?:\s*=\s*(?:[^ "\'=<>`]+|\'[^\']*\'|"[^"]*"))?'
-    open_tag = /<#{tag_name}(?:[ \t]+#{attribute})*[ \t]*\/?>/
-    closing_tag = %r{</#{tag_name}[ \t]*>}
+    stripped = line.strip
+    return false unless stripped.start_with?('<') && stripped.end_with?('>')
 
-    line.match?(/\A(?:#{open_tag}|#{closing_tag})[ \t]*\z/)
+    cursor = 1
+    closing = stripped[cursor] == '/'
+    cursor += 1 if closing
+
+    tag_end = scan_tag_name_end(stripped, cursor)
+    return false unless tag_end
+
+    cursor = tag_end
+    if closing
+      cursor += 1 while [' ', "\t"].include?(stripped[cursor])
+      return cursor == stripped.length - 1
+    end
+
+    body = stripped[cursor...(stripped.length - 1)].to_s.rstrip
+    body = body[0...-1].to_s.rstrip if body.end_with?('/')
+    valid_html_attributes?(body)
+  end
+
+  def scan_tag_name_end(text, cursor)
+    return nil unless ascii_letter?(text[cursor])
+
+    cursor += 1
+    while cursor < text.length && (ascii_letter?(text[cursor]) || ascii_digit?(text[cursor]) || text[cursor] == '-')
+      cursor += 1
+    end
+    cursor
+  end
+
+  def valid_html_attributes?(text)
+    cursor = 0
+    loop do
+      cursor += 1 while [' ', "\t"].include?(text[cursor])
+      return true if cursor >= text.length
+
+      cursor = scan_attribute_name_end(text, cursor)
+      return false unless cursor
+
+      cursor += 1 while [' ', "\t"].include?(text[cursor])
+      next unless text[cursor] == '='
+
+      cursor += 1
+      cursor += 1 while [' ', "\t"].include?(text[cursor])
+      cursor = scan_attribute_value_end(text, cursor)
+      return false unless cursor
+    end
+  end
+
+  def scan_attribute_name_end(text, cursor)
+    return nil unless ascii_letter?(text[cursor]) || ['_', ':'].include?(text[cursor])
+
+    cursor += 1
+    while cursor < text.length &&
+          (ascii_letter?(text[cursor]) || ascii_digit?(text[cursor]) || ['_', '.', ':', '-'].include?(text[cursor]))
+      cursor += 1
+    end
+    cursor
+  end
+
+  def scan_attribute_value_end(text, cursor)
+    quote = text[cursor]
+    if ['"', "'"].include?(quote)
+      cursor += 1
+      while cursor < text.length
+        return cursor + 1 if text[cursor] == quote
+
+        cursor += 1
+      end
+      return nil
+    end
+
+    return nil if cursor >= text.length
+    while cursor < text.length && ![' ', "\t"].include?(text[cursor])
+      return nil if ['"', "'", '=', '<', '>', '`'].include?(text[cursor])
+
+      cursor += 1
+    end
+    cursor
+  end
+
+  def ascii_letter?(character)
+    character&.match?(/[A-Za-z]/)
+  end
+
+  def ascii_digit?(character)
+    character&.match?(/[0-9]/)
   end
 
   def next_matched_code_span(contents, start_index)
@@ -910,12 +1027,30 @@ module MarkdownLinkContract
 
   def heading_slug(heading)
     text = heading.gsub(/!?(?:\[([^\]]+)\])\([^)]*\)/, '\\1')
-    text = CGI.unescapeHTML(text.gsub(/<[^>]*>/, ''))
+    text = CGI.unescapeHTML(strip_inline_html_tags_for_slug(text))
     text = text.gsub(/(?<!\w)__([^_\n]+)__(?!\w)/, '\\1')
     text = text.gsub(/(?<!\w)_([^_\n]+)_(?!\w)/, '\\1')
     text = text.downcase.strip
     text = text.gsub(/[^\p{L}\p{N}\p{M}\-_\s]/u, '')
     text.gsub(' ', '-').gsub(/[[:space:]]/, '')
+  end
+
+  def strip_inline_html_tags_for_slug(text)
+    stripped = +''
+    cursor = 0
+    while cursor < text.length
+      if text[cursor] == '<'
+        close = text.index('>', cursor + 1)
+        if close
+          cursor = close + 1
+          next
+        end
+      end
+
+      stripped << text[cursor]
+      cursor += 1
+    end
+    stripped
   end
 
   def percent_decode(value)
