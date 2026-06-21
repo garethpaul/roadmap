@@ -119,11 +119,12 @@ if MAKEFILE.file?
     '$(error MAKEFILES must be empty; repository verification requires this Makefile to be loaded alone)',
     'ifneq ($(origin MAKEFILE_LIST),file)',
     '$(error MAKEFILE_LIST must not be overridden)',
-    'override ROOT := $(shell path=',
-    '[ -f "$$path" ] || exit 1',
-    'export ROOT',
-    '$(error repository Makefile path could not be resolved)',
-    '/bin/sh "$$ROOT/scripts/test-makefile-root.sh"'
+    'override REPOSITORY_MAKEFILE := $(value MAKEFILE_LIST)',
+    'override CURRENT_MAKEFILE_LIST = $(value MAKEFILE_LIST)',
+    'multiple -f Makefiles are not supported',
+    'makefile=$${REPOSITORY_MAKEFILE# }',
+    'override define RUN_IN_REPO',
+    '$(RUN_IN_REPO) /bin/sh scripts/test-makefile-root.sh'
   ].each do |fragment|
     failures << "Makefile must preserve authority contract #{fragment.inspect}" unless makefile.include?(fragment)
   end
@@ -140,7 +141,7 @@ end
 make_root_test = ROOT.join('scripts/test-makefile-root.sh')
 if make_root_test.file?
   root_test = make_root_test.read
-  ['54 executed target/authority cases', '2 MAKEFILE_LIST rejections', '1 MAKEFILES rejection', '1 multi-Makefile rejection'].each do |fragment|
+  ['54 executed target/authority cases', '2 MAKEFILE_LIST rejections', '1 MAKEFILES rejection', '2 multi-Makefile rejections'].each do |fragment|
     failures << "Makefile root test must preserve #{fragment.inspect}" unless root_test.include?(fragment)
   end
 else
@@ -170,7 +171,7 @@ if SAFE_MAKE_AUTHORITY_PLAN.file?
     '54 executed target, root, shell, and Ruby authority cases',
     'Both `MAKEFILE_LIST` override channels',
     '`MAKEFILES` preload',
-    'ambiguous multiple-Makefile invocation failed closed'
+    'both `-f` orderings failed closed'
   ].each do |evidence|
     failures << "#{rel(SAFE_MAKE_AUTHORITY_PLAN)} must record verification evidence #{evidence.inspect}" unless safe_make_authority_plan.include?(evidence)
   end
