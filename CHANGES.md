@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-06-21
+
+- Made every Make quality gate safe for spaced and shell-sensitive checkout
+  paths and rejected caller-controlled root, Ruby, shell, preload, and
+  Makefile-list authority without changing roadmap content or issue routes.
+
 ## 2026-06-19
 
 - Hardened repository-local Markdown validation for reference-style links,

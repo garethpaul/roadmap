@@ -14,6 +14,7 @@ SCOPE_CHECKLIST_PLAN = DOCS_PLANS.join('2026-06-09-scope-prerequisite-checklist-
 HOSTED_VALIDATION_PLAN = DOCS_PLANS.join('2026-06-10-hosted-document-validation.md')
 MARKDOWN_ANCHOR_PLAN = DOCS_PLANS.join('2026-06-13-markdown-anchor-integrity.md')
 MAKE_ROOT_PLAN = DOCS_PLANS.join('2026-06-14-make-root-override-protection.md')
+SAFE_MAKE_AUTHORITY_PLAN = DOCS_PLANS.join('2026-06-21-safe-make-authority.md')
 FENCED_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-fenced-heading-anchor-integrity.md')
 SETEXT_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-setext-heading-anchor-validation.md')
 FENCED_LINK_PLAN = DOCS_PLANS.join('2026-06-17-fenced-link-exclusion.md')
@@ -110,12 +111,21 @@ end
 
 if MAKEFILE.file?
   makefile = MAKEFILE.read
-  root_declaration = 'override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))'
-  unless makefile.lines.first&.chomp == root_declaration &&
-         makefile.scan(/^override ROOT :=/).length == 1 &&
-         makefile.scan(/^ROOT\s*[:?+]?=/).empty?
-    failures <<
-      'Makefile must define exactly one protected repository-derived ROOT declaration first'
+  [
+    'override SHELL := /bin/sh',
+    'override .SHELLFLAGS := -c',
+    'override RUBY := ruby',
+    'ifneq ($(strip $(MAKEFILES)),)',
+    '$(error MAKEFILES must be empty; repository verification requires this Makefile to be loaded alone)',
+    'ifneq ($(origin MAKEFILE_LIST),file)',
+    '$(error MAKEFILE_LIST must not be overridden)',
+    'override ROOT := $(shell path=',
+    '[ -f "$$path" ] || exit 1',
+    'export ROOT',
+    '$(error repository Makefile path could not be resolved)',
+    '"$$ROOT/scripts/test-makefile-root.sh"'
+  ].each do |fragment|
+    failures << "Makefile must preserve authority contract #{fragment.inspect}" unless makefile.include?(fragment)
   end
   %w[
     scripts/test-markdown-link-contract.rb
@@ -125,6 +135,16 @@ if MAKEFILE.file?
   end
 else
   failures << 'Makefile is missing'
+end
+
+make_root_test = ROOT.join('scripts/test-makefile-root.sh')
+if make_root_test.file?
+  root_test = make_root_test.read
+  ['54 executed target/authority cases', '2 MAKEFILE_LIST rejections', '1 MAKEFILES rejection', '1 multi-Makefile rejection'].each do |fragment|
+    failures << "Makefile root test must preserve #{fragment.inspect}" unless root_test.include?(fragment)
+  end
+else
+  failures << 'scripts/test-makefile-root.sh is missing'
 end
 
 if MAKE_ROOT_PLAN.file?
@@ -142,6 +162,20 @@ if MAKE_ROOT_PLAN.file?
   end
 else
   failures << "#{rel(MAKE_ROOT_PLAN)} is missing"
+end
+
+if SAFE_MAKE_AUTHORITY_PLAN.file?
+  safe_make_authority_plan = SAFE_MAKE_AUTHORITY_PLAN.read
+  [
+    '54 executed target, root, shell, and Ruby authority cases',
+    'Both `MAKEFILE_LIST` override channels',
+    '`MAKEFILES` preload',
+    'ambiguous multiple-Makefile invocation failed closed'
+  ].each do |evidence|
+    failures << "#{rel(SAFE_MAKE_AUTHORITY_PLAN)} must record verification evidence #{evidence.inspect}" unless safe_make_authority_plan.include?(evidence)
+  end
+else
+  failures << "#{rel(SAFE_MAKE_AUTHORITY_PLAN)} is missing"
 end
 
 if FENCED_HEADING_PLAN.file?
