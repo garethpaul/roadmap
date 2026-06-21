@@ -58,6 +58,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
+- Make verification derives one canonical checked-in root, freezes Ruby and
+  shell authority, and rejects preloaded or ambiguous Makefiles.
 - `make check` runs the documentation integrity checks for this placeholder repository.
 - GitHub Actions runs the same no-install contract on Ruby 2.7 and Ruby 3.3
   using a fixed Ubuntu 24.04 runner, pinned actions, read-only repository
@@ -164,6 +166,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   inline code example link exclusion.
 - See `docs/plans/2026-06-17-html-comment-exclusion.md` for comment-aware link
   and heading validation.
+- See `docs/plans/2026-06-21-safe-make-authority.md` for spaced-checkout root
+  resolution and fail-closed Make authority.
 
 ## Contributing
 
