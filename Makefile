@@ -29,7 +29,7 @@ build:
 	@echo "documentation-only repository; no build step required"
 
 root-test:
-	"$$ROOT/scripts/test-makefile-root.sh"
+	/bin/sh "$$ROOT/scripts/test-makefile-root.sh"
 
 verify: root-test lint test build
 

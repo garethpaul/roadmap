@@ -123,7 +123,7 @@ if MAKEFILE.file?
     '[ -f "$$path" ] || exit 1',
     'export ROOT',
     '$(error repository Makefile path could not be resolved)',
-    '"$$ROOT/scripts/test-makefile-root.sh"'
+    '/bin/sh "$$ROOT/scripts/test-makefile-root.sh"'
   ].each do |fragment|
     failures << "Makefile must preserve authority contract #{fragment.inspect}" unless makefile.include?(fragment)
   end
