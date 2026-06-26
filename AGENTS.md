@@ -47,6 +47,8 @@
 - See `VISION.md` for project direction and contribution guardrails.
 - See `docs/plans/2026-06-08-roadmap-baseline.md` for the canonical documentation-only baseline.
 - See `docs/plans/2026-06-08-readme-scope-guard.md` for the README non-commitment language guard.
+- Keep Make verification authoritative: additional `-f` files, caller
+  `MAKEFLAGS`, and non-executing or error-ignoring modes must fail closed.
 
 ## Agent workflow
 

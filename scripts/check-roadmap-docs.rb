@@ -15,6 +15,7 @@ HOSTED_VALIDATION_PLAN = DOCS_PLANS.join('2026-06-10-hosted-document-validation.
 MARKDOWN_ANCHOR_PLAN = DOCS_PLANS.join('2026-06-13-markdown-anchor-integrity.md')
 MAKE_ROOT_PLAN = DOCS_PLANS.join('2026-06-14-make-root-override-protection.md')
 SAFE_MAKE_AUTHORITY_PLAN = DOCS_PLANS.join('2026-06-21-safe-make-authority.md')
+MAKE_INVOCATION_AUTHORITY_PLAN = DOCS_PLANS.join('2026-06-26-make-invocation-authority.md')
 FENCED_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-fenced-heading-anchor-integrity.md')
 SETEXT_HEADING_PLAN = DOCS_PLANS.join('2026-06-14-setext-heading-anchor-validation.md')
 FENCED_LINK_PLAN = DOCS_PLANS.join('2026-06-17-fenced-link-exclusion.md')
@@ -115,12 +116,17 @@ if MAKEFILE.file?
     'override SHELL := /bin/sh',
     'override .SHELLFLAGS := -c',
     'override RUBY := ruby',
+    '.SECONDEXPANSION:',
+    '$(error MAKEFLAGS must not be overridden for repository verification)',
+    '$(error non-executing or error-ignoring MAKEFLAGS are not supported for repository verification)',
     'ifneq ($(strip $(MAKEFILES)),)',
     '$(error MAKEFILES must be empty; repository verification requires this Makefile to be loaded alone)',
     'ifneq ($(origin MAKEFILE_LIST),file)',
     '$(error MAKEFILE_LIST must not be overridden)',
     'override REPOSITORY_MAKEFILE := $(value MAKEFILE_LIST)',
     'override CURRENT_MAKEFILE_LIST = $(value MAKEFILE_LIST)',
+    'build check lint root-test test verify:: __repository-make-authority',
+    '__repository-make-authority::',
     'multiple -f Makefiles are not supported',
     'makefile=$${REPOSITORY_MAKEFILE# }',
     'override define RUN_IN_REPO',
@@ -141,7 +147,16 @@ end
 make_root_test = ROOT.join('scripts/test-makefile-root.sh')
 if make_root_test.file?
   root_test = make_root_test.read
-  ['54 executed target/authority cases', '2 MAKEFILE_LIST rejections', '1 MAKEFILES rejection', '2 multi-Makefile rejections'].each do |fragment|
+  [
+    '54 executed target/authority cases',
+    '2 MAKEFILE_LIST rejections',
+    '1 MAKEFILES rejection',
+    '1 MAKEFLAGS rejection',
+    '2 multi-Makefile replacement/append rejections',
+    '10 unsafe mode rejections',
+    'later $separator recipe executed',
+    'non-executing or error-ignoring MAKEFLAGS are not supported'
+  ].each do |fragment|
     failures << "Makefile root test must preserve #{fragment.inspect}" unless root_test.include?(fragment)
   end
 else
@@ -177,6 +192,23 @@ if SAFE_MAKE_AUTHORITY_PLAN.file?
   end
 else
   failures << "#{rel(SAFE_MAKE_AUTHORITY_PLAN)} is missing"
+end
+
+if MAKE_INVOCATION_AUTHORITY_PLAN.file?
+  make_invocation_authority_plan = MAKE_INVOCATION_AUTHORITY_PLAN.read
+  [
+    'Status: Completed',
+    'single-colon replacement',
+    'double-colon append',
+    'ten non-executing or error-ignoring modes',
+    '54 existing target, root, shell, and Ruby cases',
+    'Ruby 2.7 and Ruby 3.3',
+    'roadmap content was unchanged'
+  ].each do |evidence|
+    failures << "#{rel(MAKE_INVOCATION_AUTHORITY_PLAN)} must record verification evidence #{evidence.inspect}" unless make_invocation_authority_plan.include?(evidence)
+  end
+else
+  failures << "#{rel(MAKE_INVOCATION_AUTHORITY_PLAN)} is missing"
 end
 
 if FENCED_HEADING_PLAN.file?
@@ -484,6 +516,16 @@ if ROOT.join('AGENTS.md').file?
   ['make check', 'SCOPE.md', 'secrets'].each do |phrase|
     failures << "AGENTS.md must state: #{phrase}" unless agents.include?(phrase)
   end
+  failures << 'AGENTS.md must document authoritative Make invocation modes' unless agents.include?('non-executing or error-ignoring modes')
+end
+
+make_authority_guidance = {
+  'README.md' => 'Additional `-f` files and non-executing or error-ignoring modes fail closed',
+  'SECURITY.md' => 'Additional `-f` files and non-executing or error-ignoring modes fail closed',
+  'VISION.md' => 'later recipe replacement and false-green Make modes'
+}
+make_authority_guidance.each do |path, phrase|
+  failures << "#{path} must document #{phrase}" unless read(path).gsub(/\s+/, ' ').include?(phrase)
 end
 
 hosted_documentation_contract = {

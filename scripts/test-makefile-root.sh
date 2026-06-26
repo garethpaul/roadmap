@@ -165,6 +165,12 @@ if [ -e "$COMMAND_LOG" ]; then
   exit 1
 fi
 
+if (cd "$CONTROL_DIR" && /usr/bin/make --no-print-directory --file "$MAKEFILE" MAKEFLAGS=-n check) >"$TEMP_ROOT/command-makeflags.out" 2>&1; then
+  printf '%s\n' "command MAKEFLAGS override unexpectedly passed" >&2
+  exit 1
+fi
+grep -Fq "MAKEFLAGS must not be overridden" "$TEMP_ROOT/command-makeflags.out"
+
 EARLIER_MAKEFILE="$TEMP_ROOT/earlier.mk"
 printf '%s\n' '# Explicit caller-controlled Makefile.' >"$EARLIER_MAKEFILE"
 rm -f "$COMMAND_LOG"
@@ -179,16 +185,26 @@ if [ -e "$COMMAND_LOG" ]; then
 fi
 
 LATER_MAKEFILE="$TEMP_ROOT/later.mk"
-printf '%s\n' '# Explicit caller-controlled Makefile.' >"$LATER_MAKEFILE"
-rm -f "$COMMAND_LOG"
-if (cd "$CONTROL_DIR" && PATH="$CHECKOUT/bin:$PATH" ROADMAP_COMMAND_LOG="$COMMAND_LOG" /usr/bin/make --no-print-directory --file "$MAKEFILE" --file "$LATER_MAKEFILE" check) >"$TEMP_ROOT/later.out" 2>&1; then
-  printf '%s\n' "later multiple -f Makefiles unexpectedly passed" >&2
-  exit 1
-fi
-grep -Fq "multiple -f Makefiles are not supported" "$TEMP_ROOT/later.out"
-if [ -e "$COMMAND_LOG" ]; then
-  printf '%s\n' "later multiple -f Makefiles reached a quality command" >&2
-  exit 1
-fi
+ATTACKER_MARKER="$TEMP_ROOT/later-recipe-ran"
+for separator in : ::; do
+  printf 'build check lint root-test test verify%s\n\t@touch %s\n' "$separator" "$ATTACKER_MARKER" >"$LATER_MAKEFILE"
+  rm -f "$COMMAND_LOG" "$ATTACKER_MARKER"
+  if (cd "$CONTROL_DIR" && PATH="$CHECKOUT/bin:$PATH" ROADMAP_COMMAND_LOG="$COMMAND_LOG" /usr/bin/make --no-print-directory --file "$MAKEFILE" --file "$LATER_MAKEFILE" check) >"$TEMP_ROOT/later.out" 2>&1; then
+    printf '%s\n' "later $separator recipe unexpectedly passed" >&2
+    exit 1
+  fi
+  if [ -e "$ATTACKER_MARKER" ]; then
+    printf '%s\n' "later $separator recipe executed" >&2
+    exit 1
+  fi
+done
 
-printf '%s\n' "Makefile root tests passed: 54 executed target/authority cases, 2 MAKEFILE_LIST rejections, 1 MAKEFILES rejection, and 2 multi-Makefile rejections"
+for flag in -n --just-print --dry-run --recon -t --touch -q --question -i --ignore-errors; do
+  if (cd "$CONTROL_DIR" && PATH="$CHECKOUT/bin:$PATH" ROADMAP_COMMAND_LOG="$COMMAND_LOG" /usr/bin/make --no-print-directory "$flag" --file "$MAKEFILE" check) >"$TEMP_ROOT/mode.out" 2>&1; then
+    printf '%s\n' "unsafe Make mode unexpectedly passed: $flag" >&2
+    exit 1
+  fi
+  grep -Fq "non-executing or error-ignoring MAKEFLAGS are not supported" "$TEMP_ROOT/mode.out"
+done
+
+printf '%s\n' "Makefile root tests passed: 54 executed target/authority cases, 2 MAKEFILE_LIST rejections, 1 MAKEFILES rejection, 1 MAKEFLAGS rejection, 2 multi-Makefile replacement/append rejections, and 10 unsafe mode rejections"
