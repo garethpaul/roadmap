@@ -42,6 +42,8 @@ GitHub Actions validation installs no project dependencies, grants only read
 access to repository contents, pins third-party actions by commit, and disables
 persisted checkout credentials. The local baseline fails closed when it cannot
 inspect tracked secret and editor metadata paths.
+Additional `-f` files and non-executing or error-ignoring modes fail closed
+before repository verification can report success.
 
 Until roadmap scope is defined, issue-template contact routes are limited to
 this security policy and `SCOPE.md`; the exact issue-template schema and

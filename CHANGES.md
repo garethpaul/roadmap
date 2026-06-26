@@ -1,5 +1,63 @@
 # Changes
 
+## 2026-06-26 14:16:17 PDT - P1 - Make repository verification authoritative
+
+### Summary
+
+Closed a false-green documentation verification boundary where a later `-f`
+Makefile could replace every leaf recipe, or GNU Make modes could suppress or
+ignore all repository-owned checks.
+
+### Work completed
+
+- Converted public targets to guarded double-colon rules with a repository
+  authority prerequisite.
+- Rejected later single-colon replacement, later double-colon append, caller
+  `MAKEFLAGS`, and ten non-executing or error-ignoring modes.
+- Strengthened the existing root suite from no-op extra-Makefile coverage to
+  causal attacker-marker replacement and append checks.
+- Preserved all 54 existing target, root, shell, and Ruby authority cases.
+- Extended the Ruby baseline and project guidance with the reviewed invocation
+  contract.
+
+### Threads
+
+- None; the focused Make authority work was completed directly.
+
+### Files changed
+
+- `Makefile` — own every public target and reject unsafe invocation modes.
+- `scripts/test-makefile-root.sh` — cover recipe replacement, append, caller
+  flags, and ten false-green modes.
+- `scripts/check-roadmap-docs.rb` — freeze implementation, regression, plan,
+  and guidance evidence.
+- `README.md`, `SECURITY.md`, `VISION.md`, `AGENTS.md`, and
+  `docs/plans/2026-06-26-make-invocation-authority.md` — document behavior and
+  validation.
+
+### Validation
+
+- Full Ruby documentation, Markdown, SVG, Make authority, external-path, and
+  repository hygiene gates — recorded in the completed plan.
+
+### Bugs / findings
+
+- Fixed P1 false-green verification through later Makefile recipe replacement.
+- Fixed P1 false-green verification through dry-run, touch, question, and
+  ignore-error modes.
+- Roadmap scope, commitments, issue routes, Markdown meaning, overview SVG, and
+  hosted workflow behavior did not change.
+
+### Blockers
+
+- Codex review authentication is unavailable in this environment; attempt it
+  once after the pull request is open, then rely on local and hosted gates.
+
+### Next action
+
+- Merge only the exact hosted-green pull-request head, then continue repository
+  triage.
+
 ## 2026-06-21
 
 - Made every Make quality gate safe for spaced and shell-sensitive checkout
