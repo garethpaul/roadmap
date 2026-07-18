@@ -172,6 +172,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   resolution and fail-closed Make authority.
 - See `docs/plans/2026-06-26-make-invocation-authority.md` for later-recipe and
   false-green mode isolation.
+- See `docs/plans/2026-07-18-contract-suite-mutation-control.md` for the
+  planted-defect control that proves the contract suites still reject defects.
 
 ## Contributing
 

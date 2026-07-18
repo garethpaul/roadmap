@@ -137,6 +137,7 @@ if MAKEFILE.file?
   %w[
     scripts/test-markdown-link-contract.rb
     scripts/test-overview-svg-contract.rb
+    scripts/test-contract-mutations.rb
   ].each do |test_path|
     failures << "Makefile must run #{test_path}" unless makefile.include?(test_path)
   end
@@ -161,6 +162,35 @@ if make_root_test.file?
   end
 else
   failures << 'scripts/test-makefile-root.sh is missing'
+end
+
+# The mutation control is the only check that observes the contract suites
+# actually gating rather than merely existing, so its fail-closed logic is
+# pinned here. Each fragment resolves to load-bearing behaviour, not to the
+# harness success summary.
+contract_mutation_test = ROOT.join('scripts/test-contract-mutations.rb')
+if contract_mutation_test.file?
+  mutation_test = contract_mutation_test.read
+  [
+    'assert_clean_baseline',
+    'clean-tree control failed',
+    'the assertion mechanism may be neutered',
+    'did not alter',
+    'expected exactly 1',
+    'hostile mutation survived',
+    "{ 'suite' => MARKDOWN_SUITE, 'runs' => 77, 'assertions' => 144 }",
+    "{ 'suite' => OVERVIEW_SUITE, 'runs' => 7, 'assertions' => 57 }",
+    'MUTATIONS.each { |mutation| assert_mutation_rejected(mutation) }'
+  ].each do |fragment|
+    unless mutation_test.include?(fragment)
+      failures << "Contract mutation test must preserve #{fragment.inspect}"
+    end
+  end
+  if mutation_test.scan(/'name' =>/).length < 5
+    failures << 'scripts/test-contract-mutations.rb must plant at least five hostile mutations'
+  end
+else
+  failures << 'scripts/test-contract-mutations.rb is missing'
 end
 
 if MAKE_ROOT_PLAN.file?
