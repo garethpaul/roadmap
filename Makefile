@@ -76,6 +76,7 @@ lint::
 test:: lint
 	$(RUN_IN_REPO) $(RUBY) scripts/test-markdown-link-contract.rb
 	$(RUN_IN_REPO) $(RUBY) scripts/test-overview-svg-contract.rb
+	$(RUN_IN_REPO) $(RUBY) scripts/test-contract-mutations.rb
 
 build::
 	@$(RUN_IN_REPO) printf '%s\n' "documentation-only repository; no build step required"
